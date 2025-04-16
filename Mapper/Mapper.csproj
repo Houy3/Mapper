@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <ImplicitUsings>true</ImplicitUsings>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <IsRoslynComponent>true</IsRoslynComponent>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+
+
+        <!-- Generates a package at build -->
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+        <!-- Do not include the generator as a lib dependency -->
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
+
+        <PackageId>Mapper</PackageId>
+        <RootNamespace>Mapper</RootNamespace>
+        <Description>Генератор маппингов сущностей.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="readme.md" Pack="true" PackagePath="/" />
+
+        <!-- Package the generator in the analyzer directory of the nuget package -->
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+</Project>

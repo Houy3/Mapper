@@ -1,0 +1,8 @@
+{
+    "profiles": {
+        "Profile 1": {
+            "commandName": "DebugRoslynComponent",
+            "targetProject": "..\\Mapper.TempTests\\Mapper.TempTests.csproj"
+        }
+    }
+}
