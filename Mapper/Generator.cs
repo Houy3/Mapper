@@ -10,7 +10,7 @@ using System.Text;
 namespace Mapper;
 
 [Generator]
-public class SimpleGenerator : IIncrementalGenerator
+public class Generator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -18,24 +18,23 @@ public class SimpleGenerator : IIncrementalGenerator
 
         var mappings = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                fullyQualifiedMetadataName: AutoImplementationAttributeInfo.FullClassName,
+                fullyQualifiedMetadataName: AutoImplementationAttributeInfo.FullName,
                 predicate: (node, _) => node is InterfaceDeclarationSyntax,
-                transform: (ctx, _) => ImplementationInfoBuilder.Build(ctx.TargetSymbol))
+                transform: (ctx, _) => ImplementationTypeInfoBuilder.Build(ctx.TargetSymbol))
             .Where(static m => m != default);
 
         context.RegisterSourceOutput(mappings, WriteEntitySource);
-
     }
 
 
     private void RegisterAutoImplementationAttribute(IncrementalGeneratorPostInitializationContext context)
-        => context.AddSource(AutoImplementationAttributeInfo.FullClassName, SourceText.From(AutoImplementationAttributeInfo.Text, Encoding.UTF8));
+        => context.AddSource(AutoImplementationAttributeInfo.FullName, SourceText.From(AutoImplementationAttributeInfo.Text, Encoding.UTF8));
     
 
     private static void WriteEntitySource(
         SourceProductionContext context,
-        Implementation implementationInfo)
+        ImplementationType implementationInfo)
     {
-        context.AddSource(implementationInfo.FullClassName, SourceText.From(CodeBuilder.Build(implementationInfo), Encoding.UTF8));
+        context.AddSource(implementationInfo.FullName, SourceText.From(CodeBuilder.Build(implementationInfo), Encoding.UTF8));
     }
 }

@@ -1,5 +1,5 @@
 ﻿namespace Mapper.Core.Entity;
 
-public readonly record struct Property
-{
-}
+public record Property(
+    string Name,
+    PropertyType Type);

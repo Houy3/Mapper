@@ -1,3 +1,12 @@
-﻿namespace Mapper.Core.Entity;
+﻿using Mapper.Core.Entity.Common;
 
-public readonly record struct Type;
+namespace Mapper.Core.Entity;
+
+public record Type(
+    string Namespace,
+    string Name,
+    EquatableArrayWrap<Property> PropertyList);
+
+public record PropertyType(
+    string Namespace,
+    string Name);

@@ -2,7 +2,7 @@
 
 namespace Mapper.Core.Entity;
 
-public readonly record struct Method(
+public record ImplementationMethod(
     string Name,
     Type ReturnType,
     EquatableArrayWrap<Parameter> ParameterList);
