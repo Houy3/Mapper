@@ -1,13 +1,18 @@
 ﻿using Mapper.Attributes;
-using Mapper.Core;
-using Mapper.Core.Builder;
+using Mapper.Core.Reader;
 using Mapper.Core.Entity;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
+using Mapper.Core.Builder;
 
 namespace Mapper;
+
+//nullable
+//array
+//where for method
+//where for propertyList
 
 [Generator]
 public class Generator : IIncrementalGenerator
@@ -16,14 +21,21 @@ public class Generator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(RegisterAutoImplementationAttribute);
 
-        var mappings = context.SyntaxProvider
+
+        var interfaceList = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: AutoImplementationAttributeInfo.FullName,
                 predicate: (node, _) => node is InterfaceDeclarationSyntax,
-                transform: (ctx, _) => ImplementationTypeInfoBuilder.Build(ctx.TargetSymbol))
-            .Where(static m => m != default);
+                transform: (ctx, _) => InterfaceReader.From(ctx.TargetSymbol))
+            .Where(x => x is not null)
+            .Select((x, ct) => x!);
 
-        context.RegisterSourceOutput(mappings, WriteEntitySource);
+        //get settings
+        //collect to global base
+
+        var implementationList = interfaceList.Select((x, ct) => x.Implement());
+
+        context.RegisterSourceOutput(implementationList, WriteEntitySource);
     }
 
 
@@ -33,8 +45,9 @@ public class Generator : IIncrementalGenerator
 
     private static void WriteEntitySource(
         SourceProductionContext context,
-        ImplementationType implementationInfo)
+        Implementation? implementationInfo)
     {
-        context.AddSource(implementationInfo.FullName, SourceText.From(CodeBuilder.Build(implementationInfo), Encoding.UTF8));
+        if (implementationInfo is not null)
+            context.AddSource(implementationInfo.FullName, SourceText.From(CodeBuilder.Build(implementationInfo), Encoding.UTF8));
     }
 }

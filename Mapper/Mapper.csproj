@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
-        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <IncludeFromOutput>false</IncludeFromOutput>
         <ImplicitUsings>true</ImplicitUsings>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IsRoslynComponent>true</IsRoslynComponent>
@@ -13,10 +13,10 @@
 
 
         <!-- Generates a package at build -->
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <GeneratePackageOnFrom>true</GeneratePackageOnFrom>
 
         <!-- Do not include the generator as a lib dependency -->
-        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <IncludeFromOutput>false</IncludeFromOutput>
 
         <PackageReadmeFile>readme.md</PackageReadmeFile>
 
