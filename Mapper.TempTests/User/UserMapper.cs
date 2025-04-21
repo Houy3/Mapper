@@ -6,11 +6,11 @@ public partial class UserMapper //: IUserMapper
 {
     //public UserDb ToDb(UserDto source)
     //{
-    //    throw new NotImplementedException();
+    //    //throw new NotImplementedException();
 
 
     //    //если соседний метод существует
-    //    return ToDb(source, new());
+    //    return ((IUserMapper) this).ToDb(source, new());
 
 
     //    //если соседний метод не существует

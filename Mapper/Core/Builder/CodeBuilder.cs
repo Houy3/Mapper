@@ -5,76 +5,54 @@ namespace Mapper.Core.Builder;
 
 public static class CodeBuilder
 {
-    public static string Build(Implementation implementation)
-    {
-        var text = new StringBuilder()
-            .Append("namespace ")
-            .Append(implementation.Namespace)
-            .AppendLine(";")
+    public static string Build(Implementation type)
+        => new StringBuilder()
+            .Append($"namespace {type.Namespace};")
             .AppendLine()
-            .Append("public partial class ")
-            .Append(implementation.Name)
-            .Append(" : ")
-            .AppendLine(implementation.InterfaceName)
-            .AppendLine("{")
-            .Append(BuildMethodList(implementation.MethodImplementationList.Array).Offset())
-            .AppendLine("}");
+            .AppendLine($"public partial class {type.Name} : {type.InterfaceName}")
+            .AppendBlock(BuildMethodList(type.MethodImplementationList.Array))
+            .ToString();
 
-        return text.ToString();
-    }
+    public static string BuildMethodList(MethodImplementation[] methodList)
+        => string.Join("\n\n", methodList.Select(BuildMethod));//todo \n is bad
+    
+    public static string BuildMethod(MethodImplementation method)
+        => new StringBuilder()
+            .Append($"public {method.ReturnType.FullName} {method.Name}")
+            .AppendLine($"({string.Join<Variable>(", ", method.ParameterList.Array)})")
+            .AppendBlock(BuildMethodBody(method))
+            .ToString();
 
-    public static string BuildMethodList(MethodImplementationByMappingList[] methodImplementationList)
-    {//todo \n is bad
-        return string.Join("\n\n", methodImplementationList.Select(BuildMethod));
-    }
-
-    public static string BuildMethod(MethodImplementationByMappingList methodImplementation)
+    public static string BuildMethodBody(MethodImplementation method)
     {
-        var text = new StringBuilder()
-            .Append("public ")
-            .Append(methodImplementation.ReturnType.FullName)
-            .Append(" ")
-            .Append(methodImplementation.Name)
-            .Append("(")
-            .Append(string.Join<Variable>(", ", methodImplementation.ParameterList.Array))
-            .AppendLine(")")
-            .AppendLine("{")
-            .AppendLine(BuildMethodBody(methodImplementation).Offset())
-            .Append("}");
+        if (method is MethodImplementationByMappingList methodByMappingList)
+            return BuildMethodBody(methodByMappingList);
 
-        return text.ToString();
+        if (method is MethodImplementationByBaseMethod methodByBaseMethod)
+            return BuildMethodBody(methodByBaseMethod);
+
+        return string.Empty;
     }
 
-    public static string BuildMethodBody(MethodImplementationByMappingList methodImplementation)
+    public static string BuildMethodBody(MethodImplementationByMappingList method)
     {
         var text = new StringBuilder();
-
-        if (!methodImplementation.IsDestinationVariableInited)
-            text
-                .Append("var ")
-                .Append(methodImplementation.DestinationVariable.Name)
-                .Append(" = new ")
-                .Append(methodImplementation.DestinationVariable.Type.FullName)
-                .AppendLine("();");
-
-
-        foreach (var mapping in methodImplementation.MappingList.Array)
-            text
-                .Append(mapping.SourceFieldName)
-                .Append(" = ")
-                .Append(mapping.DestinationFieldName)
-                .AppendLine(";");
-
-        text
-            .Append("return ")
-            .Append(methodImplementation.DestinationVariable.Name)
-            .Append(";");
-
+        foreach (var mapping in method.MappingList.Array)
+            text.AppendLine($"{mapping.SourceFieldName} = {mapping.DestinationFieldName};");
+        text.Append($"return {method.DestinationVariable.Name};");
         return text.ToString();
     }
 
+    public static string BuildMethodBody(MethodImplementationByBaseMethod method)
+        => $"return {method.BaseMethodName}({method.SourceVariable.Name}, new {method.ReturnType.FullName}()); ";
 
+
+    public static StringBuilder AppendBlock(this StringBuilder text, string blockBody)
+        => text
+            .AppendLine("{")
+            .AppendLine(blockBody.Offset())
+            .Append("}");
 
     public static string Offset(this string text)
-        => "\t" + text.Replace("\n", "\n\t");//TODO вообще капец грех
+        => "\t" + text.Replace("\n", "\n\t");//TODO \n is bad
 }

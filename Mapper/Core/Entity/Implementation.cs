@@ -7,7 +7,7 @@ public record Implementation(
     string Name,
     string InterfaceName,
 
-    EquatableArrayWrap<MethodImplementationByMappingList> MethodImplementationList)
+    EquatableArrayWrap<MethodImplementation> MethodImplementationList)
 {
     public string FullName => Namespace + "." + Name;
 }
@@ -18,27 +18,33 @@ public record Type;
 //todo маппинг по соседней функции (массив - 1 параметр)
 //todo маппинг по соседней функции (массив - 2 параметра) ???
 
-public record MethodImplementation;
-
-
+public abstract record MethodImplementation(
+    string Name,
+    DataType ReturnType,
+    EquatableArrayWrap<Variable> ParameterList)
+    : Method(Name, ReturnType, ParameterList)
+{
+    public Variable SourceVariable => ParameterList.Array[0];
+}
 
 //маппинг по соседней функции (1 параметр)
 public record MethodImplementationByBaseMethod(
     string Name,
     DataType ReturnType,
     EquatableArrayWrap<Variable> ParameterList,
-    Method? BaseMethod)
-    : Method(Name, ReturnType, ParameterList);
+    string BaseMethodName)
+    : MethodImplementation(Name, ReturnType, ParameterList);
 
 //конечный маппинг (2 параметра)
 public record MethodImplementationByMappingList(
     string Name,
     DataType ReturnType,
     EquatableArrayWrap<Variable> ParameterList,
-    Variable DestinationVariable,
-    bool IsDestinationVariableInited,
     EquatableArrayWrap<FieldMapping> MappingList)
-    : Method(Name, ReturnType, ParameterList);
+    : MethodImplementation(Name, ReturnType, ParameterList)
+{
+    public Variable DestinationVariable => ParameterList.Array[1];
+}
 
 public record FieldMapping(
     string SourceFieldName,

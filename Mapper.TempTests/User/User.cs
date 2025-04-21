@@ -10,6 +10,9 @@ public class UserDto
 
     [AllowNull]
     public string String { get; set; }
+
+    [AllowNull]
+    public string DtoUniqueField { get; set; }
 }
 
 public class UserDb
@@ -19,7 +22,7 @@ public class UserDb
     public int? Number { get; set; }
 
     [AllowNull]
-    public string String { get; set; }
+    public string DbUniqueField { get; set; }
 }
 
 
