@@ -2,7 +2,7 @@
 using Mapper.Core.Entity.Common;
 using Microsoft.CodeAnalysis;
 
-namespace Mapper.Core.Reader;
+namespace Mapper.Core.Settings;
 
 public static class PropertyReader
 {
@@ -16,5 +16,5 @@ public static class PropertyReader
         => new(symbol.Name, From(symbol.Type));
 
     public static FieldType From(ITypeSymbol symbol)
-        => new(DataTypeReader.GetNamespace(symbol), DataTypeReader.GetName(symbol));
+        => new(TypeReader.GetNamespace(symbol), TypeReader.GetName(symbol));
 }

@@ -22,7 +22,6 @@ public abstract record MethodImplementation(
     string Name,
     DataType ReturnType,
     EquatableArrayWrap<Variable> ParameterList)
-    : Method(Name, ReturnType, ParameterList)
 {
     public Variable SourceVariable => ParameterList.Array[0];
 }
@@ -47,5 +46,5 @@ public record MethodImplementationByMappingList(
 }
 
 public record FieldMapping(
-    string SourceFieldName,
-    string DestinationFieldName);
+    string? SourceFieldName,
+    string? DestinationFieldName);

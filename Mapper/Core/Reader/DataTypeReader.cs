@@ -1,19 +1,13 @@
 ﻿using Mapper.Core.Entity;
 using Microsoft.CodeAnalysis;
 
-namespace Mapper.Core.Reader;
+namespace Mapper.Core.Settings;
 
 public static class DataTypeReader
 {
     public static DataType From(ITypeSymbol symbol)
         => new(
-            GetNamespace(symbol),
-            GetName(symbol),
+            TypeReader.GetNamespace(symbol),
+            TypeReader.GetName(symbol),
             PropertyReader.From(symbol.GetMembers()));
-
-    public static string GetName(ITypeSymbol symbol)
-        => symbol.ToDisplayString(NullableFlowState.NotNull, new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly));
-
-    public static string GetNamespace(ITypeSymbol symbol)
-        => symbol.ContainingNamespace.ToDisplayString(); 
 }

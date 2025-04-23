@@ -2,10 +2,10 @@
 
 namespace Mapper.Attributes;
 
-public static class AutoImplementationAttributeInfo
+public static class AutoImplementationAttribute
 {
     public const string Namespace = Constants.Namespace;
-    public const string Name = "AutoImplementationAttribute";
+    public const string Name = nameof(AutoImplementationAttribute);
 
     public const string FullName = Namespace + "." + Name;
 

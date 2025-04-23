@@ -1,11 +1,12 @@
 ﻿using Mapper.Core.Entity;
 using Mapper.Core.Entity.Common;
+using Mapper.Core.Settings;
 
 namespace Mapper.Core.Builder;
 
 public static class ImplementationBuilder
 {
-    public static Implementation Implement(this Interface @interface)
+    public static Implementation Implement(this InterfaceWithSettings @interface)
         => new(
             @interface.Namespace,
             GetImplementationName(@interface.Name),
@@ -13,7 +14,7 @@ public static class ImplementationBuilder
             ImplementList(@interface.MethodList.Array));
 
 
-    public static EquatableArrayWrap<MethodImplementation> ImplementList(Method[] methodList)
+    public static EquatableArrayWrap<MethodImplementation> ImplementList(MethodWithSettings[] methodList)
     {
         var implementationList = new List<MethodImplementation>(methodList.Length);
         foreach (var method in methodList)
@@ -22,7 +23,7 @@ public static class ImplementationBuilder
         return new([.. implementationList]);
     }
 
-    public static MethodImplementation[] CreateMethodImplementation(Method method, Method[] methodList)
+    public static MethodImplementation[] CreateMethodImplementation(MethodWithSettings method, MethodWithSettings[] methodList)
     {
         var methodParameterCount = method.ParameterList.Array.Length;
 
@@ -37,7 +38,7 @@ public static class ImplementationBuilder
 
     #region MethodImplementationByMappingList
 
-    public static MethodImplementation[] CreateMethodImplementationByMappingList(Method method)
+    public static MethodImplementation[] CreateMethodImplementationByMappingList(MethodWithSettings method)
     {
         //первый параметр - источник
         var sourceParameter = method.ParameterList.Array[0];
@@ -52,26 +53,63 @@ public static class ImplementationBuilder
         return [CreateMethodImplementationByMappingList(method, sourceVariable, destinationVariable)];
     }
 
-    public static MethodImplementationByMappingList CreateMethodImplementationByMappingList(Method method, Variable sourceVariable, Variable destinationVariable)
+    public static MethodImplementationByMappingList CreateMethodImplementationByMappingList(MethodWithSettings method, Variable sourceVariable, Variable destinationVariable)
         => new(
             method.Name,
             method.ReturnType,
             method.ParameterList,
-            new(MapFieldList(sourceVariable, destinationVariable)));
+            new(MapFieldList(sourceVariable, destinationVariable, method.SettingsStorage)));
 
 
     //todo map by rule
-    public static FieldMapping[] MapFieldList(Variable sourceVariable, Variable destinationVariable)
+    public static FieldMapping[] MapFieldList(Variable sourceVariable, Variable destinationVariable, SettingsStorage settings)
     {
         var mappingList = new List<FieldMapping>();
-        var sourcePropertyDictionary = sourceVariable.Type.FieldList.Array.ToDictionary(x => x.Name, x => x);
-        foreach (var destinationProperty in destinationVariable.Type.FieldList.Array)
+
+        if (settings.MappingRule == MappingRuleEnum.MapByDestination)
         {
-            if (sourcePropertyDictionary.TryGetValue(destinationProperty.Name, out var sourceProperty))
+            var sourcePropertyDictionary = sourceVariable.Type.FieldList.Array.ToDictionary(x => x.Name, x => x);
+            foreach (var destinationProperty in destinationVariable.Type.FieldList.Array)
             {
-                mappingList.Add(new(destinationVariable.Name + '.' + destinationProperty.Name, sourceVariable.Name + '.' + sourceProperty.Name));
+                if (sourcePropertyDictionary.TryGetValue(destinationProperty.Name, out var sourceProperty))
+                {
+                    mappingList.Add(new(destinationVariable.Name + '.' + destinationProperty.Name, sourceVariable.Name + '.' + sourceProperty.Name));
+                }
+                else
+                {
+                    mappingList.Add(new(destinationVariable.Name + '.' + destinationProperty.Name, null));
+                }
             }
         }
+
+        if (settings.MappingRule == MappingRuleEnum.MapBySource)
+        {
+            var destinationPropertyDictionary = destinationVariable.Type.FieldList.Array.ToDictionary(x => x.Name, x => x);
+            foreach (var sourceProperty in sourceVariable.Type.FieldList.Array)
+            {
+                if (destinationPropertyDictionary.TryGetValue(sourceProperty.Name, out var destinationProperty))
+                {
+                    mappingList.Add(new(destinationVariable.Name + '.' + sourceProperty.Name, sourceVariable.Name + '.' + sourceProperty.Name));
+                }
+                else
+                {
+                    mappingList.Add(new(null, sourceVariable.Name + '.' + sourceProperty.Name));
+                }
+            }
+        }
+
+        if (settings.MappingRule == MappingRuleEnum.MapOnlyPairs)
+        {
+            var sourcePropertyDictionary = sourceVariable.Type.FieldList.Array.ToDictionary(x => x.Name, x => x);
+            foreach (var destinationProperty in destinationVariable.Type.FieldList.Array)
+            {
+                if (sourcePropertyDictionary.TryGetValue(destinationProperty.Name, out var sourceProperty))
+                {
+                    mappingList.Add(new(destinationVariable.Name + '.' + destinationProperty.Name, sourceVariable.Name + '.' + sourceProperty.Name));
+                }
+            }
+        }
+
         return [.. mappingList];
     }
 
@@ -79,7 +117,7 @@ public static class ImplementationBuilder
 
     #region MethodImplementationByBaseMethod
 
-    public static MethodImplementation[] CreateMethodImplementationByBaseMethod(Method method, Method[] methodList)
+    public static MethodImplementation[] CreateMethodImplementationByBaseMethod(MethodWithSettings method, MethodWithSettings[] methodList)
     {
         var sourceType = method.ParameterList.Array[0].Type;
         var destinationType = method.ReturnType;
@@ -101,7 +139,7 @@ public static class ImplementationBuilder
             var sourceVariable = new Variable("source", sourceType);
             var destinationVariable = new Variable("destination", destinationType);
 
-            baseMethod = new Method(method.Name, method.ReturnType, new([sourceVariable, destinationVariable]));
+            baseMethod = new MethodWithSettings(method.Name, method.ReturnType, new([sourceVariable, destinationVariable]), method.SettingsStorage);
 
             baseMethodImplementation = CreateMethodImplementationByMappingList(baseMethod, sourceVariable, destinationVariable);
         }

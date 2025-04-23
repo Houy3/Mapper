@@ -1,7 +1,8 @@
-﻿using Mapper.Core.Entity;
+﻿using Mapper.Attributes;
+using Mapper.Core.Entity;
 using Microsoft.CodeAnalysis;
 
-namespace Mapper.Core.Reader;
+namespace Mapper.Core.Settings;
 
 public static class InterfaceReader
 {
@@ -10,8 +11,11 @@ public static class InterfaceReader
 
     public static Interface From(INamedTypeSymbol symbol)
         => new(
-            DataTypeReader.GetNamespace(symbol),
-            DataTypeReader.GetName(symbol),
-            MethodReader.From(symbol.GetMembers())
+            TypeReader.GetNamespace(symbol),
+            TypeReader.GetName(symbol),
+            MethodReader.From(symbol.GetMembers()),
+            SettingOverrideReader.From(symbol)
             );
+    
+
 }
