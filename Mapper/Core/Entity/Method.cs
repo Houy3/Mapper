@@ -7,7 +7,7 @@ public record Method(
     string Name,
     DataType ReturnType,
     EquatableArrayWrap<Variable> ParameterList,
-    EquatableArrayWrap<SettingOverride> SettingOverrideList
+    EquatableArrayWrap<NamedValue> SettingOverrideList
     );
 
 public record MethodWithSettings(

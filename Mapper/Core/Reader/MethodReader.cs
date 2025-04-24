@@ -17,7 +17,6 @@ public static class MethodReader
             symbol.Name, 
             DataTypeReader.From(symbol.ReturnType), 
             VariableReader.From(symbol.Parameters),
-            SettingOverrideReader.From(symbol)
-            );
+            SettingOverrideReader.From(symbol));
     
 }

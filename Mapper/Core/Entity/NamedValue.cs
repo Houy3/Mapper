@@ -1,5 +1,5 @@
 ﻿namespace Mapper.Core.Entity;
 
-public record SettingOverride(
+public record NamedValue(
     string Name,
     object? Value);

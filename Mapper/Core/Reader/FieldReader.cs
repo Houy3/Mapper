@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Mapper.Core.Settings;
 
-public static class PropertyReader
+public static class FieldReader
 {
     public static EquatableArrayWrap<Field> From(IEnumerable<ISymbol> symbolList)
         => From(symbolList.Where(x => x is IPropertySymbol).Select(x => (x as IPropertySymbol)!));
@@ -16,5 +16,5 @@ public static class PropertyReader
         => new(symbol.Name, From(symbol.Type));
 
     public static FieldType From(ITypeSymbol symbol)
-        => new(TypeReader.GetNamespace(symbol), TypeReader.GetName(symbol));
+        => new(TypeIdReader.GetNamespace(symbol), TypeIdReader.GetName(symbol));
 }

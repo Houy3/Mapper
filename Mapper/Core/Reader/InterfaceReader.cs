@@ -7,15 +7,12 @@ namespace Mapper.Core.Settings;
 public static class InterfaceReader
 {
     public static Interface? From(ISymbol symbol)
-        => symbol is INamedTypeSymbol targetSymbol ? From(targetSymbol) : null;
+        => symbol is ITypeSymbol targetSymbol ? From(targetSymbol) : null;
 
-    public static Interface From(INamedTypeSymbol symbol)
+    public static Interface From(ITypeSymbol symbol)
         => new(
-            TypeReader.GetNamespace(symbol),
-            TypeReader.GetName(symbol),
+            TypeIdReader.GetNamespace(symbol),
+            TypeIdReader.GetName(symbol),
             MethodReader.From(symbol.GetMembers()),
-            SettingOverrideReader.From(symbol)
-            );
-    
-
+            SettingOverrideReader.From(symbol));
 }

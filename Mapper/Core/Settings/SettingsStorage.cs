@@ -1,9 +1,8 @@
 ﻿namespace Mapper.Core.Settings;
 
-public record SettingsStorage(MappingRuleEnum MappingRule = SettingsStorage.DefaultMappingRule)
-{
-    public const MappingRuleEnum DefaultMappingRule = MappingRuleEnum.MapByDestination;
-}
+public record SettingsStorage(
+    MappingRuleEnum MappingRule = MappingRuleEnum.MapByDestination);
+
 
 public enum MappingRuleEnum
 {

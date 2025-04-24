@@ -2,9 +2,10 @@
 
 namespace Entity.User;
 
+
 public class UserDto
 {
-    public Guid Id { get; set; }
+    public Guid? Id { get; set; }
 
     public int? Number { get; set; }
 
@@ -19,7 +20,7 @@ public class UserDb
 {
     public Guid Id { get; set; }
 
-    public int? Number { get; set; }
+    public int Number { get; set; }
 
     [AllowNull]
     public string DbUniqueField { get; set; }

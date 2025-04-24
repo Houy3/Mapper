@@ -7,12 +7,12 @@ public record Interface(
     string Namespace,
     string Name,
     EquatableArrayWrap<Method> MethodList,
-    EquatableArrayWrap<SettingOverride> SettingOverrideList
-    );
+    EquatableArrayWrap<NamedValue> SettingOverrideList)
+    : TypeId(Namespace, Name);
 
 public record InterfaceWithSettings(
     string Namespace,
     string Name,
     EquatableArrayWrap<MethodWithSettings> MethodList,
-    SettingsStorage SettingsStorage
-    );
+    SettingsStorage SettingsStorage)
+    : TypeId(Namespace, Name);

@@ -7,7 +7,7 @@ public static class DataTypeReader
 {
     public static DataType From(ITypeSymbol symbol)
         => new(
-            TypeReader.GetNamespace(symbol),
-            TypeReader.GetName(symbol),
-            PropertyReader.From(symbol.GetMembers()));
+            TypeIdReader.GetNamespace(symbol),
+            TypeIdReader.GetName(symbol),
+            FieldReader.From(symbol.GetMembers()));
 }

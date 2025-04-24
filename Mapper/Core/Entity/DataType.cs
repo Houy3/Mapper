@@ -6,6 +6,8 @@ public record DataType(
     string Namespace,
     string Name,
     EquatableArrayWrap<Field> FieldList)
+    : TypeId(Namespace, Name)
 {
-    public string FullName => Namespace + "." + Name;
+    public TypeId ToTypeId()
+        => new(Namespace, Name);
 }

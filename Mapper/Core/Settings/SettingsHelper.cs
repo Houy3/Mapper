@@ -6,8 +6,8 @@ namespace Mapper.Core.Settings;
 
 public static class SettingsHelper
 {
-    public static SettingsStorage From(ISymbol symbol)
-        => From(new(), SettingOverrideReader.From(symbol).Array);
+    public static SettingsStorage From(ImmutableArray<AttributeData> attributeList)
+        => From(new(), SettingOverrideReader.From(attributeList).Array);
 
     public static SettingsStorage From(SettingsStorage storage, Interface @interface)
         => From(storage, @interface.SettingOverrideList.Array);
@@ -15,7 +15,7 @@ public static class SettingsHelper
     public static SettingsStorage From(SettingsStorage storage, Method method)
         => From(storage, method.SettingOverrideList.Array);
 
-    public static SettingsStorage From(SettingsStorage storage, SettingOverride[] settingOverrideList)
+    public static SettingsStorage From(SettingsStorage storage, NamedValue[] settingOverrideList)
     {
         if (settingOverrideList.Length == 0)
             return storage;
@@ -26,20 +26,13 @@ public static class SettingsHelper
     }
 
     public static MappingRuleEnum? Parse(object? value)
-    {
-        if (value is int valueInt)
-            if (Enum.IsDefined(typeof(MappingRuleEnum), valueInt))
-                return (MappingRuleEnum)valueInt;
+        => (MappingRuleEnum?)(value as int?);
 
-        if (Enum.TryParse<MappingRuleEnum>(value?.ToString() ?? string.Empty, out var @enum))
-            return @enum;
-
-        return null;
-    }
-
-    public static InterfaceWithSettings SpreadOutSettings(Interface @interface, SettingsStorage globalSettings)
+    public static InterfaceWithSettings SpreadOutSettings(Interface @interface, SettingsStorage globalSettings, CancellationToken cancellationToken)
     {
         var interfaceSettings = From(globalSettings, @interface);
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var methodList = @interface.MethodList.Array.Select(x =>
             new MethodWithSettings(
@@ -58,7 +51,7 @@ public static class SettingsHelper
     }
 
     //todo > 1
-    public static SettingsStorage FirstOrDefaultSetting(ImmutableArray<SettingsStorage> settingsStorageList, CancellationToken cancellationToken)
+    public static SettingsStorage FirstOrDefaultSetting(ImmutableArray<SettingsStorage> settingsStorageList)
         => settingsStorageList.Where(x => x is not null).FirstOrDefault() ?? new();
 
 }

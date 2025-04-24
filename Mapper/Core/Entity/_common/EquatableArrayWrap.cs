@@ -3,6 +3,8 @@
 public sealed record EquatableArrayWrap<T>(T[] Array)
     where T : notnull
 {
+    public EquatableArrayWrap() : this([]){}
+
     public bool Equals(EquatableArrayWrap<T> other)
         => Array.SequenceEqual(other.Array);
 

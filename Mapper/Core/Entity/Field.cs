@@ -4,6 +4,8 @@ public record Field(
     string Name,
     FieldType Type);
 
+//todo
 public record FieldType(
     string Namespace,
-    string Name);
+    string Name)
+    : TypeId(Namespace, Name);

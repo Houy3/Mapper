@@ -6,13 +6,8 @@ public record Implementation(
     string Namespace,
     string Name,
     string InterfaceName,
-
     EquatableArrayWrap<MethodImplementation> MethodImplementationList)
-{
-    public string FullName => Namespace + "." + Name;
-}
-
-public record Type;
+    : TypeId(Namespace, Name);
 
 
 //todo маппинг по соседней функции (массив - 1 параметр)
