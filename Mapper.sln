@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapper.TempTests", "Mapper.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumbFramework", "DumbFramework\DumbFramework.csproj", "{8B71249B-7D8C-41F3-B7BF-ABA6E881ED61}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapperBenchmarks", "MapperBenchmarks\MapperBenchmarks.csproj", "{5F6F5695-B0AC-4C87-80D6-06D819A0A4CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{1A5A195E-8CF7-4A3D-AC10-B5415DB52530}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{8B71249B-7D8C-41F3-B7BF-ABA6E881ED61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B71249B-7D8C-41F3-B7BF-ABA6E881ED61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B71249B-7D8C-41F3-B7BF-ABA6E881ED61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F6F5695-B0AC-4C87-80D6-06D819A0A4CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F6F5695-B0AC-4C87-80D6-06D819A0A4CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F6F5695-B0AC-4C87-80D6-06D819A0A4CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F6F5695-B0AC-4C87-80D6-06D819A0A4CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A5A195E-8CF7-4A3D-AC10-B5415DB52530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A5A195E-8CF7-4A3D-AC10-B5415DB52530}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A5A195E-8CF7-4A3D-AC10-B5415DB52530}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A5A195E-8CF7-4A3D-AC10-B5415DB52530}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
