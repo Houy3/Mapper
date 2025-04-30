@@ -7,3 +7,4 @@ public record TypeId(
     public string FullName => Namespace + "." + Name;
 }
 
+

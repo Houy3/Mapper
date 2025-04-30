@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using Mapper.Core.Builder;
 using Mapper.Core.TypeMapping;
-using Mapper.Core.Entity.Common;
-using System.Collections.Immutable;
 
 namespace Mapper;
 
@@ -31,9 +29,6 @@ public class Generator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(RegisterSettingsAttribute);
         context.RegisterPostInitializationOutput(RegisterImportTypeMappingsAttribute);
 
-        //попробовать искать поля по атрибуту
-
-
         //достаем настройки на проект
         var globalSettings = context.SyntaxProvider
             .ForAttributeWithMetadataName(
@@ -53,29 +48,30 @@ public class Generator : IIncrementalGenerator
             .Where(x => x is not null)
             .Select((x, _) => x!);
 
-
-        var outsideTypeMappingListStorage = context.SyntaxProvider
+        //импортируем сторонние маппинги
+        var outsideTypeMappingList = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: ImportTypeMappingsAttribute.FullName,
                 predicate: (node, _) => node is TypeDeclarationSyntax,
                 transform: (ctx, _) => TypeMappingHelper.From(ctx.Attributes))
             .Collect();
-
-
-        var internalTypeMappingListStorage = interfaceList
+        
+        //складываем маппинги, которые будут реализованы
+        var insideTypeMappingList = interfaceList
             .Select((x, _) => TypeMappingHelper.From(x))
             .Collect();
 
-        var typeMappingStorage = outsideTypeMappingListStorage.Combine(internalTypeMappingListStorage)
-            .Select((x, _) => TypeMappingHelper.BuildStorage(x.Left, x.Right));
+        //объединяем маппинги в общее хранилище
+        var typeMappingStorage = outsideTypeMappingList.Combine(insideTypeMappingList)
+            .Select((x, ct) => TypeMappingHelper.BuildStorage(x.Left, x.Right, ct));
 
 
         context.RegisterSourceOutput(typeMappingStorage, RegisterTest);
 
         //высчитываем настройки на каждой реализации
         var interfaceWithSettingsList = interfaceList
-            .Combine(globalSettings)
-            .Select((x, ct) => SettingsHelper.SpreadOutSettings(x.Left, x.Right, ct));
+            .Combine(globalSettings.Combine(typeMappingStorage))
+            .Select((x, ct) => SettingsHelper.SpreadOutSettings(x.Left, x.Right.Left, x.Right.Right, ct));
 
 
         //collect importsSettings

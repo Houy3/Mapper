@@ -6,12 +6,23 @@ public record Implementation(
     string Namespace,
     string Name,
     string InterfaceName,
-    EquatableArrayWrap<MethodImplementation> MethodImplementationList)
+    EquatableArrayWrap<MethodImplementation> MethodImplementationList,
+    EquatableArrayWrap<StaticMappingMethod> StaticMappingMethodList)
     : TypeId(Namespace, Name);
 
 
-//todo маппинг по соседней функции (массив - 1 параметр)
-//todo маппинг по соседней функции (массив - 2 параметра) ???
+//todo маппинг по соседней функции (массив)
+
+public abstract record StaticMappingMethod(
+    string Name,
+    Variable Source,
+    Variable Destination,
+    EquatableArrayWrap<FieldMapping> MappingList)
+{
+
+}
+
+
 
 public abstract record MethodImplementation(
     string Name,

@@ -1,4 +1,5 @@
 ﻿using Mapper.Core.Entity;
+using Mapper.Core.TypeMapping;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 
@@ -28,7 +29,11 @@ public static class SettingsHelper
     public static MappingRuleEnum? Parse(object? value)
         => (MappingRuleEnum?)(value as int?);
 
-    public static InterfaceWithSettings SpreadOutSettings(Interface @interface, SettingsStorage globalSettings, CancellationToken cancellationToken)
+    public static InterfaceWithSettings SpreadOutSettings(
+        Interface @interface, 
+        SettingsStorage globalSettings, 
+        TypeMappingStorage typeMappingStorage, 
+        CancellationToken cancellationToken)
     {
         var interfaceSettings = From(globalSettings, @interface);
 
@@ -46,7 +51,8 @@ public static class SettingsHelper
             @interface.Namespace,
             @interface.Name,
             new(methodList),
-            interfaceSettings
+            interfaceSettings,
+            typeMappingStorage//todo
             );
     }
 

@@ -3,7 +3,7 @@
 
 namespace Service.User;
 
-[Mapper.AutoImplementation]
+//[Mapper.AutoImplementation]
 [Mapper.Settings(MappingRule = Mapper.MappingRuleEnum.MapOnlyPairs)]
 partial interface IUserMapper
 {

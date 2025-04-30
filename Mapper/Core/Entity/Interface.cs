@@ -1,5 +1,6 @@
 ﻿using Mapper.Core.Entity.Common;
 using Mapper.Core.Settings;
+using Mapper.Core.TypeMapping;
 
 namespace Mapper.Core.Entity;
 
@@ -14,5 +15,6 @@ public record InterfaceWithSettings(
     string Namespace,
     string Name,
     EquatableArrayWrap<MethodWithSettings> MethodList,
-    SettingsStorage SettingsStorage)
+    SettingsStorage SettingsStorage,
+    TypeMappingStorage TypeMappingStorage)
     : TypeId(Namespace, Name);

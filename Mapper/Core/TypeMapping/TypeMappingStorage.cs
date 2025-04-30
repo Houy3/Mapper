@@ -4,11 +4,18 @@ using Mapper.Core.Entity.Common;
 namespace Mapper.Core.TypeMapping;
 
 public record TypeMappingStorage(
-    EquatableArrayWrap<TypeMappingMethod> TypeMappingList);//todo use dictionary
+    EquatableDictionaryWrap<TypeIdPair, TypeMappingMethodId> TypeMappingList);
 
-public record TypeMappingMethod(
+public record TypeMappingMethodId(
     string TypeNamespace,
     string TypeName,
-    string Name,
+    string Name);
+
+public record TypeIdPair(
     TypeId Source,
     TypeId Destination);
+
+
+public record TypeMappingMethod(
+    TypeIdPair Key,
+    TypeMappingMethodId Value);

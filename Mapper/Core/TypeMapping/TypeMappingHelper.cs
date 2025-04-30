@@ -3,10 +3,11 @@ using Mapper.Core.Reader;
 using Mapper.Core.Settings;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
-using Mapper.Attributes;
 
 using static Mapper.Attributes.ImportTypeMappingsAttribute;
 using Mapper.Core.Entity.Common;
+using System.Collections.Generic;
+using Mapper.Core.Builder;
 
 namespace Mapper.Core.TypeMapping;
 
@@ -40,15 +41,12 @@ public static class TypeMappingHelper
             if (member is not IMethodSymbol method)
                 continue;
 
-            if (method.Parameters.Length != 1)
+            if (!method.IsStatic || method.Parameters.Length != 1)
                 continue;
 
             typeMappingMethodList.Add(new(
-                typeNamespace,
-                typeName,
-                method.Name,
-                TypeIdReader.From(method.Parameters[0].Type),
-                TypeIdReader.From(method.ReturnType))
+                new(TypeIdReader.From(method.Parameters[0].Type), TypeIdReader.From(method.ReturnType)),
+                new(typeNamespace, typeName, method.Name))
                 );
         }
 
@@ -60,16 +58,35 @@ public static class TypeMappingHelper
             @interface.MethodList.Array
                 .Where(x => x.ParameterList.Array.Length == 1)
                 .Select(x => new TypeMappingMethod(
-                    @interface.Namespace,
-                    @interface.Name,
-                    x.Name,
-                    x.ParameterList.Array[0].Type.ToTypeId(),
-                    x.ReturnType.ToTypeId()))]);
+                    new(x.ParameterList.Array[0].Type.ToTypeId(), x.ReturnType.ToTypeId()),
+                    new(@interface.Namespace, ImplementationBuilder.GetImplementationName(@interface.Name), x.Name)))]);
 
 
 
+    public static TypeMappingStorage BuildStorage(
+        ImmutableArray<EquatableArrayWrap<TypeMappingMethod>> outsideTypeMappingList, 
+        ImmutableArray<EquatableArrayWrap<TypeMappingMethod>> insideTypeMappingList,
+        CancellationToken cancellationToken)
+    {
+        var dictionary = new Dictionary<TypeIdPair, TypeMappingMethodId>();
 
-    public static TypeMappingStorage BuildStorage(ImmutableArray<EquatableArrayWrap<TypeMappingMethod>> storage1, ImmutableArray<EquatableArrayWrap<TypeMappingMethod>> storage2)
-        => new(new([.. storage1.Select(x => x.Array).SelectMany(x => x), .. storage2.Select(x => x.Array).SelectMany(x => x)]));
+        AddTypeMappingListInStorage(dictionary, outsideTypeMappingList, cancellationToken);
+        AddTypeMappingListInStorage(dictionary, insideTypeMappingList, cancellationToken);
+
+        return new(new(dictionary));
+    }
+
+
+    public static void AddTypeMappingListInStorage(
+        Dictionary<TypeIdPair, TypeMappingMethodId> storage,
+        ImmutableArray<EquatableArrayWrap<TypeMappingMethod>> typeMappingList,
+        CancellationToken cancellationToken)
+    {
+        foreach (var typeMappingMethod in typeMappingList.SelectMany(x => x.Array))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            storage[typeMappingMethod.Key] = typeMappingMethod.Value;
+        }
+    }
 
 }
