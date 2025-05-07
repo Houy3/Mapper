@@ -1,20 +1,24 @@
 ﻿using Mapper.Core.Entity.Common;
-using Mapper.Core.Settings;
-using Mapper.Core.TypeMapping;
 
 namespace Mapper.Core.Entity;
 
-public record Interface(
+public record MapperType(
     string Namespace,
     string Name,
     EquatableArrayWrap<Method> MethodList,
     EquatableArrayWrap<NamedValue> SettingOverrideList)
     : TypeId(Namespace, Name);
 
-public record InterfaceWithSettings(
+public record PlannedMapperType(
     string Namespace,
     string Name,
-    EquatableArrayWrap<MethodWithSettings> MethodList,
-    SettingsStorage SettingsStorage,
-    TypeMappingStorage TypeMappingStorage)
+    EquatableArrayWrap<PlannedMethod> PlannedMethodList)
+    : TypeId(Namespace, Name);
+
+
+
+public record ConfiguredMapperType(
+    string Namespace,
+    string Name,
+    EquatableArrayWrap<ConfiguredMethod> ConfiguredMethodList)
     : TypeId(Namespace, Name);

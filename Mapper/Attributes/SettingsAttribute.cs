@@ -12,7 +12,7 @@ public static class SettingsAttribute
     public const string Text = $$"""
         namespace {{Namespace}};
 
-        [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
         internal class {{Name}} : Attribute
         {
             public MappingRuleEnum MappingRule = MappingRuleEnum.UseDefaultValue;

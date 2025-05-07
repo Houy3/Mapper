@@ -1,7 +1,5 @@
 ﻿using Mapper.Core.Entity;
-using Mapper.Core.Entity.Common;
 using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
 
 namespace Mapper.Core.Reader;
 
@@ -12,11 +10,8 @@ public static class NamedValueReader
         if (settingsAttribute is null)
             return [];
 
-        return From(settingsAttribute.NamedArguments);
+        return [.. settingsAttribute.NamedArguments.Select(From).Where(x => x is not null)!];
     }
-
-    public static NamedValue[] From(ImmutableArray<KeyValuePair<string, TypedConstant>> keyValuePairList)
-        => [.. keyValuePairList.Select(From).Where(x => x is not null)!];
 
     public static NamedValue? From(KeyValuePair<string, TypedConstant> namedConstant)
     {

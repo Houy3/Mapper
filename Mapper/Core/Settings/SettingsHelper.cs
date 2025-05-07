@@ -10,7 +10,7 @@ public static class SettingsHelper
     public static SettingsStorage From(ImmutableArray<AttributeData> attributeList)
         => From(new(), SettingOverrideReader.From(attributeList).Array);
 
-    public static SettingsStorage From(SettingsStorage storage, Interface @interface)
+    public static SettingsStorage From(SettingsStorage storage, MapperType @interface)
         => From(storage, @interface.SettingOverrideList.Array);
 
     public static SettingsStorage From(SettingsStorage storage, Method method)
@@ -29,8 +29,8 @@ public static class SettingsHelper
     public static MappingRuleEnum? Parse(object? value)
         => (MappingRuleEnum?)(value as int?);
 
-    public static InterfaceWithSettings SpreadOutSettings(
-        Interface @interface, 
+    public static ConfiguredMapperType SpreadOutSettings(
+        MapperType @interface, 
         SettingsStorage globalSettings, 
         TypeMappingStorage typeMappingStorage, 
         CancellationToken cancellationToken)
@@ -40,19 +40,20 @@ public static class SettingsHelper
         cancellationToken.ThrowIfCancellationRequested();
 
         var methodList = @interface.MethodList.Array.Select(x =>
-            new MethodWithSettings(
+            new ConfiguredMethod(
                 x.Name,
                 x.ReturnType,
                 x.ParameterList,
-                From(interfaceSettings, x)
+                x.Details,
+                x.Source,
+                From(interfaceSettings, x),
+                typeMappingStorage//todo
                 )).ToArray();
 
-        return new InterfaceWithSettings(
+        return new ConfiguredMapperType(
             @interface.Namespace,
             @interface.Name,
-            new(methodList),
-            interfaceSettings,
-            typeMappingStorage//todo
+            new(methodList)
             );
     }
 

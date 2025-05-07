@@ -7,15 +7,14 @@ using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using Mapper.Core.Builder;
 using Mapper.Core.TypeMapping;
+using Mapper.Core.Reader;
 
 namespace Mapper;
 
 //nullable
 //array
-//inner mapping
-//base type
-//where for method (2 params and other)
-//where for propertyList (fieldList, getter, sett enable)
+//valueType
+//async
 
 //read about cancelToken
 
@@ -33,7 +32,7 @@ public class Generator : IIncrementalGenerator
         var globalSettings = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: GlobalSettingsAttribute.FullName,
-                predicate: (node, _) => node is TypeDeclarationSyntax,
+                predicate: (node, _) => node is ClassDeclarationSyntax,
                 transform: (ctx, _) => SettingsHelper.From(ctx.Attributes))
             .Where(x => x is not null)
             .Collect()
@@ -43,8 +42,8 @@ public class Generator : IIncrementalGenerator
         var interfaceList = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: AutoImplementationAttribute.FullName,
-                predicate: (node, _) => node is InterfaceDeclarationSyntax,
-                transform: (ctx, _) => InterfaceReader.From(ctx.TargetSymbol))
+                predicate: (node, _) => node is ClassDeclarationSyntax,
+                transform: (ctx, _) => MapperTypeReader.From(ctx.TargetSymbol))
             .Where(x => x is not null)
             .Select((x, _) => x!);
 
@@ -52,7 +51,7 @@ public class Generator : IIncrementalGenerator
         var outsideTypeMappingList = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: ImportTypeMappingsAttribute.FullName,
-                predicate: (node, _) => node is TypeDeclarationSyntax,
+                predicate: (node, _) => node is ClassDeclarationSyntax,
                 transform: (ctx, _) => TypeMappingHelper.From(ctx.Attributes))
             .Collect();
         
@@ -64,9 +63,6 @@ public class Generator : IIncrementalGenerator
         //объединяем маппинги в общее хранилище
         var typeMappingStorage = outsideTypeMappingList.Combine(insideTypeMappingList)
             .Select((x, ct) => TypeMappingHelper.BuildStorage(x.Left, x.Right, ct));
-
-
-        context.RegisterSourceOutput(typeMappingStorage, RegisterTest);
 
         //высчитываем настройки на каждой реализации
         var interfaceWithSettingsList = interfaceList
@@ -97,12 +93,7 @@ public class Generator : IIncrementalGenerator
 
 
 
-    private static void RegisterMapper(SourceProductionContext context, Implementation implementationInfo)
+    private static void RegisterMapper(SourceProductionContext context, ImplementedMapperType implementationInfo)
         => context.AddSource(implementationInfo.FullName, SourceText.From(CodeBuilder.Build(implementationInfo), Encoding.UTF8));
-
-    private static void RegisterTest(SourceProductionContext context, TypeMappingStorage test)
-    {
-        //context.AddSource("ttt.txt", SourceText.From("ttt", Encoding.UTF8));
-    }
 
 }

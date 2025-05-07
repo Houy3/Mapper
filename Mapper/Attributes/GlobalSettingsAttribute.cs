@@ -12,7 +12,7 @@ public static class GlobalSettingsAttribute
     public const string Text = $$"""
         namespace {{Namespace}};
 
-        [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+        [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
         internal class {{Name}} : {{SettingsAttribute.Name}};
         """;
 }

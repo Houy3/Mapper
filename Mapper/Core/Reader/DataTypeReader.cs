@@ -1,7 +1,7 @@
 ﻿using Mapper.Core.Entity;
 using Microsoft.CodeAnalysis;
 
-namespace Mapper.Core.Settings;
+namespace Mapper.Core.Reader;
 
 public static class DataTypeReader
 {
@@ -9,5 +9,5 @@ public static class DataTypeReader
         => new(
             TypeIdReader.GetNamespace(symbol),
             TypeIdReader.GetName(symbol),
-            FieldReader.From(symbol.GetMembers()));
+            FieldReader.From(symbol));
 }

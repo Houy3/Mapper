@@ -12,7 +12,7 @@ public static class AutoImplementationAttribute
     public const string Text = $$"""
         namespace {{Namespace}};
 
-        [AttributeUsage(AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
+        [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
         internal class {{Name}} : Attribute;
         """;
 }

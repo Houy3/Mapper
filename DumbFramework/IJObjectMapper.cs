@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
-using System.ComponentModel;
 
 namespace DumbFramework;
 
-[Description]
-public interface IJObjectMapper
+public static class JObjectMapper
 {
-    public string ToString(JObject json);
+    public static string ToString(JObject json)
+        => json.ToString();
 }

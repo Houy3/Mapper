@@ -8,6 +8,11 @@ public record DataType(
     EquatableArrayWrap<Field> FieldList)
     : TypeId(Namespace, Name)
 {
+
     public TypeId ToTypeId()
         => new(Namespace, Name);
 }
+
+public record Field(
+    string Name,
+    FieldType Type);

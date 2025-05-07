@@ -6,24 +6,97 @@ namespace Mapper.Core.Builder;
 
 public static class ImplementationBuilder
 {
-    public static Implementation Implement(this InterfaceWithSettings @interface)
+    public static PlannedMapperType PlanMethods(this MapperType mapperType)
         => new(
-            @interface.Namespace,
-            GetImplementationName(@interface.Name),
-            @interface.Name,
-            ImplementList(@interface.MethodList.Array));
+            mapperType.Namespace,
+            mapperType.Name,
+            PlanMethods(mapperType.MethodList.Array));
 
-
-    public static EquatableArrayWrap<MethodImplementation> ImplementList(MethodWithSettings[] methodList)
+    public static EquatableArrayWrap<PlannedMethod> PlanMethods(Method[] methodList)
     {
-        var implementationList = new List<MethodImplementation>(methodList.Length);
+        //отобрать для реализации
+        //внести запланированные статические методы
+        var newMethodList = new List<PlannedMethod>();
         foreach (var method in methodList)
-            implementationList.AddRange(CreateMethodImplementation(method, methodList));
+        {
+            if (!method.Details.HasFlag(MethodDetails.WithoutBody))
+            {
+                newMethodList.Add(new(
+                    method.Signature,
+                    method.Details,
+                    method.Source,
+                    method.SettingOverrideList,
+                    true,
+                    null
+                    ));
+                continue;
+            }
+
+
+        }
+
+        return new([.. newMethodList]);
+    }
+
+    public static PlannedMethod NewPlannedMethod(Method method, bool isReal, PlannedMethod connectedMethod)
+        => new(method.Signature, method.Details, method.Source, method.SettingOverrideList, isReal, connectedMethod);
+
+    public static ImplementedMapperType Implement(this ConfiguredMapperType mapperType)
+        => new(
+            mapperType.Namespace,
+            GetImplementationName(mapperType.Name),
+            ImplementList(mapperType.ConfiguredMethodList.Array.ToList()));
+
+
+    public static EquatableArrayWrap<MethodImplementation> ImplementList(List<ConfiguredMethod> methodList)
+    {
+        var implementationList = new List<MethodImplementation>();
+
+        foreach (var method in methodList.Where(x => x.Details.HasFlag(MethodDetails.WithoutBody)))
+        {
+            var overrideMethod = 
+
+            Implement(method, methodList);
+        }
+
+            //foreach (var method in methodList)
+            //implementationList.AddRange(CreateMethodImplementation(method, methodList));
 
         return new([.. implementationList]);
     }
 
-    public static MethodImplementation[] CreateMethodImplementation(MethodWithSettings method, MethodWithSettings[] methodList)
+    public static ConfiguredMethod? FindImplementationMethod(
+        ConfiguredMethod baseMethod,
+        List<ConfiguredMethod> methodList)
+    {
+        var fullMethodList = methodList.Select(x => x as MethodSignature).Concat(implementationList);
+
+
+
+        return fullMethodList.FirstOrDefault(x => 
+            && x.ReturnType == baseMethod.ReturnType
+            && x.Name == baseMethod.Name
+            && x.ParameterList == baseMethod.ParameterList);
+
+        if (baseMethod.Source == MethodSource.Interface)
+            return methodList.FirstOrDefault(x =>
+                   !x.Details.HasFlag(MethodDetails.WithoutBody)
+                && x.ReturnType == baseMethod.ReturnType
+                && x.Name == baseMethod.Name
+                && x.ParameterList == baseMethod.ParameterList);
+
+        return null;
+    }
+
+    public static IEnumerable<MethodImplementation> Implement(
+        ConfiguredMethod method, 
+        ConfiguredMethod[] methodList,
+        List<MethodImplementation> implementationList)
+    {
+        return [];
+    }
+
+    public static MethodImplementation[] CreateMethodImplementation(ConfiguredMethod method, ConfiguredMethod[] methodList)
     {
         var methodParameterCount = method.ParameterList.Array.Length;
 
@@ -38,7 +111,7 @@ public static class ImplementationBuilder
 
     #region MethodImplementationByMappingList
 
-    public static MethodImplementation[] CreateMethodImplementationByMappingList(MethodWithSettings method)
+    public static MethodImplementation[] CreateMethodImplementationByMappingList(ConfiguredMethod method)
     {
         //первый параметр - источник
         var sourceParameter = method.ParameterList.Array[0];
@@ -53,8 +126,9 @@ public static class ImplementationBuilder
         return [CreateMethodImplementationByMappingList(method, sourceVariable, destinationVariable)];
     }
 
-    public static MethodImplementationByMappingList CreateMethodImplementationByMappingList(MethodWithSettings method, Variable sourceVariable, Variable destinationVariable)
+    public static MappingMethodImplementation CreateMethodImplementationByMappingList(ConfiguredMethod method, Variable sourceVariable, Variable destinationVariable)
         => new(
+            method.Details,
             method.Name,
             method.ReturnType,
             method.ParameterList,
@@ -117,7 +191,7 @@ public static class ImplementationBuilder
 
     #region MethodImplementationByBaseMethod
 
-    public static MethodImplementation[] CreateMethodImplementationByBaseMethod(MethodWithSettings method, MethodWithSettings[] methodList)
+    public static MethodImplementation[] CreateMethodImplementationByBaseMethod(ConfiguredMethod method, ConfiguredMethod[] methodList)
     {
         var sourceType = method.ParameterList.Array[0].Type;
         var destinationType = method.ReturnType;
@@ -132,28 +206,30 @@ public static class ImplementationBuilder
                 && x.ParameterList.Array[1].Type == destinationType);
 
 
-        //создаем базовый метод с реализацией, если он не нашелся
-        MethodImplementationByMappingList? baseMethodImplementation = null;
-        if (baseMethod is null)
-        {
-            var sourceVariable = new Variable("source", sourceType);
-            var destinationVariable = new Variable("destination", destinationType);
+        ////создаем базовый метод с реализацией, если он не нашелся
+        //MethodImplementationByOtherMethod? baseMethodImplementation = null;
+        //if (baseMethod is null)
+        //{
+        //    var sourceVariable = new Variable("source", sourceType);
+        //    var destinationVariable = new Variable("destination", destinationType);
 
-            baseMethod = new MethodWithSettings(method.Name, method.ReturnType, new([sourceVariable, destinationVariable]), method.SettingsStorage);
+        //    baseMethod = new ConfiguredMethodSignature(method.Name, method.ReturnType, new([sourceVariable, destinationVariable]), method.SettingsStorage);
 
-            baseMethodImplementation = CreateMethodImplementationByMappingList(baseMethod, sourceVariable, destinationVariable);
-        }
+        //    baseMethodImplementation = CreateMethodImplementationByMappingList(baseMethod, sourceVariable, destinationVariable);
+        //}
 
-        var methodImplementation = new MethodImplementationByBaseMethod(
-            method.Name,
-            method.ReturnType,
-            method.ParameterList,
-            baseMethod!.Name);
+        //var methodImplementation = new MethodImplementationByOtherMethod(
+        //    method.Name,
+        //    method.ReturnType,
+        //    method.ParameterList,
+        //    baseMethod!.Name);
 
-        if (baseMethodImplementation is not null)
-            return [methodImplementation, baseMethodImplementation];
-        else
-            return [methodImplementation];
+        //if (baseMethodImplementation is not null)
+        //    return [methodImplementation, baseMethodImplementation];
+        //else
+        //    return [methodImplementation];
+
+        return [];
     }
 
     #endregion

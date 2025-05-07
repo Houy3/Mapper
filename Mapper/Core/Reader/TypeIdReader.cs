@@ -1,7 +1,7 @@
 ﻿using Mapper.Core.Entity;
 using Microsoft.CodeAnalysis;
 
-namespace Mapper.Core.Settings;
+namespace Mapper.Core.Reader;
 
 public static class TypeIdReader
 {

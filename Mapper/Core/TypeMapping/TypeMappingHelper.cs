@@ -53,7 +53,7 @@ public static class TypeMappingHelper
         return typeMappingMethodList;
     }
 
-    public static EquatableArrayWrap<TypeMappingMethod> From(Interface @interface)
+    public static EquatableArrayWrap<TypeMappingMethod> From(MapperType @interface)
         => new([..
             @interface.MethodList.Array
                 .Where(x => x.ParameterList.Array.Length == 1)
