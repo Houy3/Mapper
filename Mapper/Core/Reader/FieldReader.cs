@@ -16,7 +16,7 @@ public static class FieldReader
             symbol = symbol.BaseType;
         }
 
-        return new([.. memberList.Select(From).Where(x => x is not null)!]);
+        return new(memberList.Select(From).Where(x => x is not null)!);
     }
 
 

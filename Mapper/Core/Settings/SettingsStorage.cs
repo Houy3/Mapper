@@ -1,8 +1,10 @@
-﻿namespace Mapper.Core.Settings;
+﻿using Mapper.Core.Entity;
+
+namespace Mapper.Core.Settings;
 
 public record SettingsStorage(
+    TypeMappingStorage TypeMappingStorage,
     MappingRuleEnum MappingRule = MappingRuleEnum.MapByDestination);
-
 
 public enum MappingRuleEnum
 {

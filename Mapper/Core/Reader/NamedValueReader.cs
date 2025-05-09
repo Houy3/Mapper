@@ -5,12 +5,12 @@ namespace Mapper.Core.Reader;
 
 public static class NamedValueReader
 {
-    public static NamedValue[] From(AttributeData? settingsAttribute)
+    public static IEnumerable<NamedValue> From(AttributeData? settingsAttribute)
     {
         if (settingsAttribute is null)
             return [];
 
-        return [.. settingsAttribute.NamedArguments.Select(From).Where(x => x is not null)!];
+        return settingsAttribute.NamedArguments.Select(From).Where(x => x is not null)!;
     }
 
     public static NamedValue? From(KeyValuePair<string, TypedConstant> namedConstant)

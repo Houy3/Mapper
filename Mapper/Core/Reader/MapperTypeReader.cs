@@ -6,7 +6,7 @@ namespace Mapper.Core.Reader;
 
 public static class MapperTypeReader
 {
-    public static MapperType? From(ISymbol symbol)
+    public static MapperType? ReadMapperType(this ISymbol symbol)
         => symbol is ITypeSymbol targetSymbol ? From(targetSymbol) : default;
 
     public static MapperType From(ITypeSymbol symbol)

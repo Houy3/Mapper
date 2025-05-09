@@ -6,6 +6,8 @@ public sealed record EquatableDictionaryWrap<TKey, TValue>(Dictionary<TKey, TVal
 {
     public EquatableDictionaryWrap() : this([]) { }
 
+    public int Count = Dictionary.Count;
+
     public bool Equals(EquatableDictionaryWrap<TKey, TValue> other)
         => Dictionary.SequenceEqual(other.Dictionary);
 

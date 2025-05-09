@@ -1,9 +1,21 @@
-﻿namespace Mapper.Core.Entity.Common;
+﻿using System.Collections;
 
-public sealed record EquatableArrayWrap<T>(T[] Array)
+namespace Mapper.Core.Entity.Common;
+
+public sealed record EquatableArrayWrap<T>(T[] Array) : IEnumerable<T>
     where T : notnull
 {
-    public EquatableArrayWrap() : this([]){ }
+    public EquatableArrayWrap() : this((T[])[]) { }
+    public EquatableArrayWrap(IEnumerable<T> list) : this(list.ToArray()) { }
+
+
+    public int Length = Array.Length;
+
+    public T this[int index]
+    {
+        get => Array[index];
+    }
+
 
     public bool Equals(EquatableArrayWrap<T> other)
         => Array.SequenceEqual(other.Array);
@@ -16,4 +28,10 @@ public sealed record EquatableArrayWrap<T>(T[] Array)
 
         return hashCode;
     }
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        => Array.AsEnumerable().GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => Array.GetEnumerator();
 }

@@ -1,240 +1,163 @@
 ﻿using Mapper.Core.Entity;
 using Mapper.Core.Entity.Common;
+using Mapper.Core.Reader;
 using Mapper.Core.Settings;
+using static Mapper.Core.Entity.MethodDetails;
+using static Mapper.Core.Entity.MethodSource;
 
 namespace Mapper.Core.Builder;
 
 public static class ImplementationBuilder
 {
-    public static PlannedMapperType PlanMethods(this MapperType mapperType)
+    public const string INTERNAL_METHOD_NAME_PREFIX = "Internal";
+
+
+    #region Plan Methods
+
+    public static PlannedMapperType PlanMethodList(this MapperType mapperType, CancellationToken ct)
         => new(
             mapperType.Namespace,
             mapperType.Name,
-            PlanMethods(mapperType.MethodList.Array));
+            PlanMethodList(mapperType.MethodList, ct),
+            mapperType.SettingOverrideList);
 
-    public static EquatableArrayWrap<PlannedMethod> PlanMethods(Method[] methodList)
+    public static EquatableArrayWrap<MappingMethod> PlanMethodList(EquatableArrayWrap<Method> methodList, CancellationToken ct)
+        => new(methodList.SelectMany(x => PlanMethod(x, methodList, ct)));
+
+    public static MappingMethod[] PlanMethod(Method method, EquatableArrayWrap<Method> methodList, CancellationToken ct)
     {
-        //отобрать для реализации
-        //внести запланированные статические методы
-        var newMethodList = new List<PlannedMethod>();
-        foreach (var method in methodList)
-        {
-            if (!method.Details.HasFlag(MethodDetails.WithoutBody))
-            {
-                newMethodList.Add(new(
-                    method.Signature,
-                    method.Details,
-                    method.Source,
-                    method.SettingOverrideList,
-                    true,
-                    null
-                    ));
-                continue;
-            }
+        ct.ThrowIfCancellationRequested();
 
+        if (HasBodyOrImplementation(method, methodList))
+            return [];
 
-        }
+        var staticMethod = ResolveStaticMappingMethod(method, methodList);
 
-        return new([.. newMethodList]);
+        var methodDetails = method.Details;
+        if (method.IsNot(Partial) && method.IsFrom(Class))
+            methodDetails |= Override;
+
+        var mappingMethod = new MappingMethod(
+            method.Signature,
+            methodDetails,
+            staticMethod,
+            method.SettingOverrideList);
+
+        if (staticMethod?.Is(WithoutBody) ?? false)
+            return [mappingMethod, staticMethod];
+
+        return [mappingMethod];
     }
 
-    public static PlannedMethod NewPlannedMethod(Method method, bool isReal, PlannedMethod connectedMethod)
-        => new(method.Signature, method.Details, method.Source, method.SettingOverrideList, isReal, connectedMethod);
+    public static bool HasBodyOrImplementation(Method method, EquatableArrayWrap<Method> methodList)
+    {
+        if (!method.Is(WithoutBody))
+            return true;
 
-    public static ImplementedMapperType Implement(this ConfiguredMapperType mapperType)
+        var possibleImplementationList = methodList.Where(x => x.Signature == method.Signature && x.IsNot(Static));
+
+        if (method.IsFrom(Interface))
+            return possibleImplementationList.Where(x => x.IsFrom(Class)).Any();
+
+        if (method.Is(Partial))
+            return false;
+
+        return possibleImplementationList.Where(x => x.Is(Override)).Any();
+    }
+
+    public static MappingMethod? ResolveStaticMappingMethod(Method method, EquatableArrayWrap<Method> methodList)
+    {
+        if (method.Is(Static))
+            return null;
+
+        var staticMethodSignature = StaticMethodSignature(method);
+
+        var staticMethod = methodList.FirstOrDefault(x => x.Signature == staticMethodSignature && x.Is(Static));
+        if (staticMethod is not null)
+            return new(staticMethod.Signature, staticMethod.Details, staticMethod.SettingOverrideList);
+
+        return new MappingMethod(
+            staticMethodSignature, 
+            (method.Details & ~(Partial | Override)) | Static, 
+            method.SettingOverrideList);
+    }
+
+    public static MethodSignature StaticMethodSignature(Method method)
+        => new(method.Name + INTERNAL_METHOD_NAME_PREFIX, method.ReturnType, method.ParameterList);
+
+    #endregion
+
+    public static ImplementedMapperType ImplementType(this ConfiguredMapperType mapperType)
         => new(
             mapperType.Namespace,
-            GetImplementationName(mapperType.Name),
-            ImplementList(mapperType.ConfiguredMethodList.Array.ToList()));
+            mapperType.Name,
+            ImplementMethodList(mapperType.ConfiguredMethodList));
+
+    public static EquatableArrayWrap<MethodImplementation> ImplementMethodList(EquatableArrayWrap<ConfiguredMethod> methodList)
+        => new(methodList.Select(ImplementMethod));
 
 
-    public static EquatableArrayWrap<MethodImplementation> ImplementList(List<ConfiguredMethod> methodList)
+    public static MethodImplementation ImplementMethod(
+        ConfiguredMethod method)
     {
-        var implementationList = new List<MethodImplementation>();
-
-        foreach (var method in methodList.Where(x => x.Details.HasFlag(MethodDetails.WithoutBody)))
-        {
-            var overrideMethod = 
-
-            Implement(method, methodList);
-        }
-
-            //foreach (var method in methodList)
-            //implementationList.AddRange(CreateMethodImplementation(method, methodList));
-
-        return new([.. implementationList]);
+        if (method.ConnectedMethod is not null)
+            return ImplementByOtherMethod(method);
+        return ImplementMappingMethod(method);
     }
-
-    public static ConfiguredMethod? FindImplementationMethod(
-        ConfiguredMethod baseMethod,
-        List<ConfiguredMethod> methodList)
-    {
-        var fullMethodList = methodList.Select(x => x as MethodSignature).Concat(implementationList);
-
-
-
-        return fullMethodList.FirstOrDefault(x => 
-            && x.ReturnType == baseMethod.ReturnType
-            && x.Name == baseMethod.Name
-            && x.ParameterList == baseMethod.ParameterList);
-
-        if (baseMethod.Source == MethodSource.Interface)
-            return methodList.FirstOrDefault(x =>
-                   !x.Details.HasFlag(MethodDetails.WithoutBody)
-                && x.ReturnType == baseMethod.ReturnType
-                && x.Name == baseMethod.Name
-                && x.ParameterList == baseMethod.ParameterList);
-
-        return null;
-    }
-
-    public static IEnumerable<MethodImplementation> Implement(
-        ConfiguredMethod method, 
-        ConfiguredMethod[] methodList,
-        List<MethodImplementation> implementationList)
-    {
-        return [];
-    }
-
-    public static MethodImplementation[] CreateMethodImplementation(ConfiguredMethod method, ConfiguredMethod[] methodList)
-    {
-        var methodParameterCount = method.ParameterList.Array.Length;
-
-        if (methodParameterCount == 1)
-            return CreateMethodImplementationByBaseMethod(method, methodList);
-        else if (methodParameterCount == 2)
-            return CreateMethodImplementationByMappingList(method);
-        else
-            return [];
-    }
-
 
     #region MethodImplementationByMappingList
 
-    public static MethodImplementation[] CreateMethodImplementationByMappingList(ConfiguredMethod method)
-    {
-        //первый параметр - источник
-        var sourceParameter = method.ParameterList.Array[0];
-        var sourceVariable = new Variable(sourceParameter.Name, sourceParameter.Type);
+    public static MappingMethodImplementation ImplementMappingMethod(ConfiguredMethod method)
+        => new(method.Signature, method.Details, MapFieldList(new(method.ParameterList[0].Name, method.SourceType), method.DestinationType, method.SettingsStorage));
 
-        //второй параметр - приемник
-        var destinationParameter = method.ParameterList.Array[1];
-        if (destinationParameter.Type != method.ReturnType)
-            return [];
-        var destinationVariable = new Variable(destinationParameter.Name, destinationParameter.Type);
-
-        return [CreateMethodImplementationByMappingList(method, sourceVariable, destinationVariable)];
-    }
-
-    public static MappingMethodImplementation CreateMethodImplementationByMappingList(ConfiguredMethod method, Variable sourceVariable, Variable destinationVariable)
-        => new(
-            method.Details,
-            method.Name,
-            method.ReturnType,
-            method.ParameterList,
-            new(MapFieldList(sourceVariable, destinationVariable, method.SettingsStorage)));
-
-
-    //todo map by rule
-    public static FieldMapping[] MapFieldList(Variable sourceVariable, Variable destinationVariable, SettingsStorage settings)
+    public static EquatableArrayWrap<FieldMapping> MapFieldList(Variable sourceVariable, DataType destinationType, SettingsStorage settings)
     {
         var mappingList = new List<FieldMapping>();
 
-        if (settings.MappingRule == MappingRuleEnum.MapByDestination)
-        {
-            var sourcePropertyDictionary = sourceVariable.Type.FieldList.Array.ToDictionary(x => x.Name, x => x);
-            foreach (var destinationProperty in destinationVariable.Type.FieldList.Array)
-            {
-                if (sourcePropertyDictionary.TryGetValue(destinationProperty.Name, out var sourceProperty))
-                {
-                    mappingList.Add(new(destinationVariable.Name + '.' + destinationProperty.Name, sourceVariable.Name + '.' + sourceProperty.Name));
-                }
-                else
-                {
-                    mappingList.Add(new(destinationVariable.Name + '.' + destinationProperty.Name, null));
-                }
-            }
-        }
-
-        if (settings.MappingRule == MappingRuleEnum.MapBySource)
-        {
-            var destinationPropertyDictionary = destinationVariable.Type.FieldList.Array.ToDictionary(x => x.Name, x => x);
-            foreach (var sourceProperty in sourceVariable.Type.FieldList.Array)
-            {
-                if (destinationPropertyDictionary.TryGetValue(sourceProperty.Name, out var destinationProperty))
-                {
-                    mappingList.Add(new(destinationVariable.Name + '.' + sourceProperty.Name, sourceVariable.Name + '.' + sourceProperty.Name));
-                }
-                else
-                {
-                    mappingList.Add(new(null, sourceVariable.Name + '.' + sourceProperty.Name));
-                }
-            }
-        }
-
-        if (settings.MappingRule == MappingRuleEnum.MapOnlyPairs)
-        {
-            var sourcePropertyDictionary = sourceVariable.Type.FieldList.Array.ToDictionary(x => x.Name, x => x);
-            foreach (var destinationProperty in destinationVariable.Type.FieldList.Array)
-            {
-                if (sourcePropertyDictionary.TryGetValue(destinationProperty.Name, out var sourceProperty))
-                {
-                    mappingList.Add(new(destinationVariable.Name + '.' + destinationProperty.Name, sourceVariable.Name + '.' + sourceProperty.Name));
-                }
-            }
-        }
-
-        return [.. mappingList];
-    }
-
-    #endregion
-
-    #region MethodImplementationByBaseMethod
-
-    public static MethodImplementation[] CreateMethodImplementationByBaseMethod(ConfiguredMethod method, ConfiguredMethod[] methodList)
-    {
-        var sourceType = method.ParameterList.Array[0].Type;
-        var destinationType = method.ReturnType;
-
-        //ищем базовый метод
-        var baseMethod = methodList
-            .FirstOrDefault(x =>
-                x.Name == method.Name
-                && x.ReturnType == method.ReturnType
-                && x.ParameterList.Array.Length == 2
-                && x.ParameterList.Array[0].Type == sourceType
-                && x.ParameterList.Array[1].Type == destinationType);
-
-
-        ////создаем базовый метод с реализацией, если он не нашелся
-        //MethodImplementationByOtherMethod? baseMethodImplementation = null;
-        //if (baseMethod is null)
+        //if (settings.MappingRule == MappingRuleEnum.MapByDestination)
         //{
-        //    var sourceVariable = new Variable("source", sourceType);
-        //    var destinationVariable = new Variable("destination", destinationType);
-
-        //    baseMethod = new ConfiguredMethodSignature(method.Name, method.ReturnType, new([sourceVariable, destinationVariable]), method.SettingsStorage);
-
-        //    baseMethodImplementation = CreateMethodImplementationByMappingList(baseMethod, sourceVariable, destinationVariable);
+        var sourcePropertyDictionary = sourceVariable.Type.FieldList.ToDictionary(x => x.Name, x => x);
+        foreach (var destinationProperty in destinationType.FieldList)
+        {
+            var sourceProperty = sourcePropertyDictionary.GetValueOrDefault(destinationProperty.Name);
+            mappingList.Add(new FieldMapping(sourceVariable, sourceProperty, destinationProperty.Name));
+        }
         //}
 
-        //var methodImplementation = new MethodImplementationByOtherMethod(
-        //    method.Name,
-        //    method.ReturnType,
-        //    method.ParameterList,
-        //    baseMethod!.Name);
+        //if (settings.MappingRule == MappingRuleEnum.MapBySource)
+        //{
+        //    var destinationPropertyDictionary = destinationVariable.Type.FieldList.Array.ToDictionary(x => x.Name, x => x);
+        //    foreach (var sourceProperty in sourceVariable.Type.FieldList.Array)
+        //    {
+        //        if (destinationPropertyDictionary.TryGetValue(sourceProperty.Name, out var destinationProperty))
+        //        {
+        //            mappingList.Add(new(destinationVariable.Name + '.' + sourceProperty.Name, sourceVariable.Name + '.' + sourceProperty.Name));
+        //        }
+        //        else
+        //        {
+        //            mappingList.Add(new(null, sourceVariable.Name + '.' + sourceProperty.Name));
+        //        }
+        //    }
+        //}
 
-        //if (baseMethodImplementation is not null)
-        //    return [methodImplementation, baseMethodImplementation];
-        //else
-        //    return [methodImplementation];
+        //if (settings.MappingRule == MappingRuleEnum.MapOnlyPairs)
+        //{
+        //    var sourcePropertyDictionary = sourceVariable.Type.FieldList.Array.ToDictionary(x => x.Name, x => x);
+        //    foreach (var destinationProperty in destinationVariable.Type.FieldList.Array)
+        //    {
+        //        if (sourcePropertyDictionary.TryGetValue(destinationProperty.Name, out var sourceProperty))
+        //        {
+        //            mappingList.Add(new(destinationVariable.Name + '.' + destinationProperty.Name, sourceVariable.Name + '.' + sourceProperty.Name));
+        //        }
+        //    }
+        //}
 
-        return [];
+        return new(mappingList);
     }
 
     #endregion
 
-
-    public static string GetImplementationName(string interfaceName)
-        => interfaceName.StartsWith("I") ? interfaceName.Substring(1) : interfaceName + "Impl";
+    public static MethodImplementationByOtherMethod ImplementByOtherMethod(ConfiguredMethod method)
+        => new(method.Signature, method.Details, method.ConnectedMethod!.Signature);
+    
 }

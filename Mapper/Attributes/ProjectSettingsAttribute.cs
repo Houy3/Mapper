@@ -2,10 +2,10 @@
 
 namespace Mapper.Attributes;
 
-public static class GlobalSettingsAttribute
+public static class ProjectSettingsAttribute
 {
     public const string Namespace = Constants.Namespace;
-    public const string Name = nameof(GlobalSettingsAttribute);
+    public const string Name = nameof(ProjectSettingsAttribute);
 
     public const string FullName = Namespace + "." + Name;
 

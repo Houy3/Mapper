@@ -1,28 +1,27 @@
 ﻿using Mapper.Core.Entity;
-using Mapper.Core.TypeMapping;
+using Mapper.Core.Entity.Common;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
+using static Mapper.Attributes.SettingsAttribute;
+
 
 namespace Mapper.Core.Settings;
 
 public static class SettingsHelper
 {
-    public static SettingsStorage From(ImmutableArray<AttributeData> attributeList)
-        => From(new(), SettingOverrideReader.From(attributeList).Array);
+    public static SettingsStorage ReadProjectSettings(this ImmutableArray<AttributeData> attributeList)
+        => From(new(new()), SettingOverrideReader.From(attributeList));
 
-    public static SettingsStorage From(SettingsStorage storage, MapperType @interface)
-        => From(storage, @interface.SettingOverrideList.Array);
-
-    public static SettingsStorage From(SettingsStorage storage, Method method)
-        => From(storage, method.SettingOverrideList.Array);
-
-    public static SettingsStorage From(SettingsStorage storage, NamedValue[] settingOverrideList)
+    public static SettingsStorage From(SettingsStorage settings, EquatableArrayWrap<NamedValue> settingOverrideList, TypeMappingStorage? typeMappingStorage = null)
     {
-        if (settingOverrideList.Length == 0)
-            return storage;
+        typeMappingStorage ??= new();
+
+        if (settingOverrideList.Length == 0 && typeMappingStorage.IsEmpty())
+            return settings;
 
         return new(
-            Parse(settingOverrideList.FirstOrDefault(x => x.Name == nameof(SettingsStorage.MappingRule))?.Value) ?? storage.MappingRule
+            typeMappingStorage,
+            Parse(settingOverrideList.FirstOrDefault(x => x.Name == MappingRulePropertyName)?.Value) ?? settings.MappingRule
             );
     }
 
@@ -30,36 +29,43 @@ public static class SettingsHelper
         => (MappingRuleEnum?)(value as int?);
 
     public static ConfiguredMapperType SpreadOutSettings(
-        MapperType @interface, 
+        PlannedMapperType mapperType, 
         SettingsStorage globalSettings, 
         TypeMappingStorage typeMappingStorage, 
         CancellationToken cancellationToken)
     {
-        var interfaceSettings = From(globalSettings, @interface);
+        var interfaceSettings = From(globalSettings, mapperType);
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var methodList = @interface.MethodList.Array.Select(x =>
+        var methodList = mapperType.MappingMethodList.Select(x =>
             new ConfiguredMethod(
-                x.Name,
-                x.ReturnType,
-                x.ParameterList,
+                x.Signature,
                 x.Details,
-                x.Source,
-                From(interfaceSettings, x),
-                typeMappingStorage//todo
+                x.ConnectedMethod,
+                From(interfaceSettings, x, typeMappingStorage)
                 )).ToArray();
 
         return new ConfiguredMapperType(
-            @interface.Namespace,
-            @interface.Name,
+            mapperType.Namespace,
+            mapperType.Name,
             new(methodList)
             );
     }
+    public static SettingsStorage From(SettingsStorage storage, PlannedMapperType mapperType)
+        => From(storage, mapperType.SettingOverrideList);
+
+    public static SettingsStorage From(SettingsStorage storage, MappingMethod method, TypeMappingStorage typeMappingStorage)
+    {
+        var neededMappings = method.Se
+
+        return From(storage, method.SettingOverrideList);
+    }
+
 
     //todo > 1
-    public static SettingsStorage FirstOrDefaultSetting(ImmutableArray<SettingsStorage> settingsStorageList)
-        => settingsStorageList.Where(x => x is not null).FirstOrDefault() ?? new();
+    public static SettingsStorage FirstOrDefault(this ImmutableArray<SettingsStorage> settingsStorageList)
+        => settingsStorageList.Where(x => x is not null).FirstOrDefault() ?? new(new());
 
 }
 

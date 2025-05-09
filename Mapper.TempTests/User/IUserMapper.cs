@@ -7,7 +7,6 @@ partial interface IUserMapper : ISimpleMapper<UserDto, UserDb>
 {
 
     public UserDb ToDb(UserDto source, UserDb destination);
-    
 }
 
 

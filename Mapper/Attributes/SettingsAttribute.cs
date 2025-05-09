@@ -1,4 +1,5 @@
 ﻿using Mapper.Common;
+using Mapper.Core.Settings;
 
 namespace Mapper.Attributes;
 
@@ -15,7 +16,7 @@ public static class SettingsAttribute
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
         internal class {{Name}} : Attribute
         {
-            public MappingRuleEnum MappingRule = MappingRuleEnum.UseDefaultValue;
+            public MappingRuleEnum {{MappingRulePropertyName}} = MappingRuleEnum.UseDefaultValue;
         }
 
         public enum MappingRuleEnum
@@ -39,4 +40,7 @@ public static class SettingsAttribute
         }
         
         """;
+
+
+    public const string MappingRulePropertyName = nameof(SettingsStorage.MappingRule);
 }

@@ -7,38 +7,35 @@ namespace Mapper.Core.Reader;
 
 public static class MethodReader
 {
+    //todo
+    //public static readonly string[] IgnoreMethodNameList = [nameof(Equals), nameof(GetHashCode)];
+
+
     public static EquatableArrayWrap<Method> From(ITypeSymbol symbol)
-        => new([.. FromOriginal(symbol), .. FromBaseType(symbol), .. FromInterfaceList(symbol)]);
+        => new(FromClassRecursive(symbol).Concat(FromInterfaceList(symbol)));
 
 
-    public static IEnumerable<Method> FromOriginal(ITypeSymbol symbol)
+    public static IEnumerable<Method> FromClassRecursive(ITypeSymbol symbol)
     {
-        foreach (var methodSymbol in symbol.GetMembers().OfType<IMethodSymbol>())
-        {
-            var method = From(methodSymbol, MethodSource.Original);
-            if (method is not null)
-                yield return method;
-        }
-    }
+        var isBase = false;
 
-    public static IEnumerable<Method> FromBaseType(ITypeSymbol symbol)
-    {
         while (symbol.BaseType is not null)
         {
-            symbol = symbol.BaseType;
-            foreach (var methodSymbol in symbol.GetMembers().OfType<IMethodSymbol>())
+            foreach (var methodSymbol in symbol.GetMembers().OfType<IMethodSymbol>().Where(x => !isBase || !x.IsPrivate()))
             {
-                var method = From(methodSymbol, MethodSource.BaseType);
+                var method = From(methodSymbol, MethodSource.Class);
                 if (method is not null)
                     yield return method;
             }
-        }
 
+            symbol = symbol.BaseType;
+            isBase = true;
+        }
     }
 
     public static IEnumerable<Method> FromInterfaceList(ITypeSymbol symbol)
     {
-        foreach (var methodSymbol in symbol.AllInterfaces.SelectMany(x => x.GetMembers()).OfType<IMethodSymbol>())
+        foreach (var methodSymbol in symbol.AllInterfaces.SelectMany(x => x.GetMembers()).OfType<IMethodSymbol>().Where(x => !x.IsPrivate()))
         {
             var method = From(methodSymbol, MethodSource.Interface);
             if (method is not null)
@@ -55,27 +52,23 @@ public static class MethodReader
         var returnType = DataTypeReader.From(symbol.ReturnType);
         var parameterList = VariableReader.From(symbol.Parameters);
 
-        if (parameterList.Length == 0
-            || parameterList.Length == 2 && parameterList[1].Type != returnType
-            || parameterList.Length > 1)
+        if (   parameterList.Length == 0 || parameterList.Length > 2
+            || parameterList.Length == 2 && parameterList[1].Type != returnType)
             return null;
 
         return new(
             new(symbol.Name, returnType, new(parameterList)),
-            DetailFrom(symbol, source),
+            DetailsFrom(symbol),
             source,
             SettingOverrideReader.From(symbol));
     }
 
-    public static MethodDetails DetailFrom(IMethodSymbol symbol, MethodSource source)
+    public static MethodDetails DetailsFrom(IMethodSymbol symbol)
     {
         var type = MethodDetails.None;
 
         if (symbol.IsPublic())
             type |= MethodDetails.Public;
-
-        if (symbol.IsProtected())
-            type |= MethodDetails.Protected;
 
         if (symbol.IsStatic)
             type |= MethodDetails.Static;
@@ -83,18 +76,15 @@ public static class MethodReader
         if (symbol.IsPartialDefinition)
         {
             type |= MethodDetails.Partial;
-            if (symbol.PartialDefinitionPart is null)
+            if (symbol.PartialImplementationPart is null)
                 type |= MethodDetails.WithoutBody;
         }
 
         if (symbol.IsAbstract)
-            type |= MethodDetails.Abstract | MethodDetails.WithoutBody;
+            type |= MethodDetails.WithoutBody;
 
         if (symbol.IsOverride)
             type |= MethodDetails.Override;
-
-        if (source == MethodSource.Interface)
-            type |= MethodDetails.WithoutBody;
 
         return type;
     }

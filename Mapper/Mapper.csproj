@@ -23,6 +23,8 @@
         <PackageId>Mapper</PackageId>
         <RootNamespace>Mapper</RootNamespace>
         <Description>Генератор маппингов сущностей.</Description>
+
+		<NoWarn>IDE0306</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

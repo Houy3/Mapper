@@ -6,14 +6,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using Mapper.Core.Builder;
-using Mapper.Core.TypeMapping;
 using Mapper.Core.Reader;
 
 namespace Mapper;
 
 //nullable
 //array
-//valueType
+//strange types: valueType enum
 //async
 
 //read about cancelToken
@@ -31,49 +30,47 @@ public class Generator : IIncrementalGenerator
         //достаем настройки на проект
         var globalSettings = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                fullyQualifiedMetadataName: GlobalSettingsAttribute.FullName,
+                fullyQualifiedMetadataName: ProjectSettingsAttribute.FullName,
                 predicate: (node, _) => node is ClassDeclarationSyntax,
-                transform: (ctx, _) => SettingsHelper.From(ctx.Attributes))
+                transform: (ctx, _) => ctx.Attributes.ReadProjectSettings())
             .Where(x => x is not null)
             .Collect()
-            .Select((x, _) => SettingsHelper.FirstOrDefaultSetting(x));
-
-        //достаем интерфейсы для реализации
-        var interfaceList = context.SyntaxProvider
-            .ForAttributeWithMetadataName(
-                fullyQualifiedMetadataName: AutoImplementationAttribute.FullName,
-                predicate: (node, _) => node is ClassDeclarationSyntax,
-                transform: (ctx, _) => MapperTypeReader.From(ctx.TargetSymbol))
-            .Where(x => x is not null)
-            .Select((x, _) => x!);
+            .Select((x, _) => x.FirstOrDefault());
 
         //импортируем сторонние маппинги
-        var outsideTypeMappingList = context.SyntaxProvider
+        var externalTypeMappingList = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: ImportTypeMappingsAttribute.FullName,
                 predicate: (node, _) => node is ClassDeclarationSyntax,
-                transform: (ctx, _) => TypeMappingHelper.From(ctx.Attributes))
+                transform: (ctx, _) => ctx.Attributes.ReadExternalTypeMappingList())
+            .SelectMany((x, _) => x)
             .Collect();
-        
-        //складываем маппинги, которые будут реализованы
-        var insideTypeMappingList = interfaceList
-            .Select((x, _) => TypeMappingHelper.From(x))
+
+        //ищем мапперы для реализации
+        var mapperTypeList = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                fullyQualifiedMetadataName: AutoImplementationAttribute.FullName,
+                predicate: (node, _) => node is ClassDeclarationSyntax,
+                transform: (ctx, _) => ctx.TargetSymbol.ReadMapperType())
+            .Where(x => x is not null)
+            .Select((x, ct) => x!.PlanMethodList(ct));
+
+        //ищем внутренние маппинги
+        var internalTypeMappingList = mapperTypeList
+            .SelectMany((x, _) => x.FindTypeMappingMethodList())
             .Collect();
 
         //объединяем маппинги в общее хранилище
-        var typeMappingStorage = outsideTypeMappingList.Combine(insideTypeMappingList)
-            .Select((x, ct) => TypeMappingHelper.BuildStorage(x.Left, x.Right, ct));
+        var typeMappingStorage = externalTypeMappingList.Combine(internalTypeMappingList)
+            .Select((x, ct) => x.Left.CombineInStorage(x.Right, ct));
 
-        //высчитываем настройки на каждой реализации
-        var interfaceWithSettingsList = interfaceList
+        //высчитываем настройки на каждой реализации и распределяем хранилище
+        var configuredMapperType = mapperTypeList
             .Combine(globalSettings.Combine(typeMappingStorage))
             .Select((x, ct) => SettingsHelper.SpreadOutSettings(x.Left, x.Right.Left, x.Right.Right, ct));
 
 
-        //collect importsSettings
-
-
-        var implementationList = interfaceWithSettingsList.Select((x, ct) => x.Implement());
+        var implementationList = configuredMapperType.Select((x, ct) => x.ImplementType());
 
         context.RegisterSourceOutput(implementationList, RegisterMapper);
     }
@@ -83,7 +80,7 @@ public class Generator : IIncrementalGenerator
         => context.AddSource(AutoImplementationAttribute.FullName, SourceText.From(AutoImplementationAttribute.Text, Encoding.UTF8));
 
     private void RegisterGlobalSettingsAttribute(IncrementalGeneratorPostInitializationContext context)
-        => context.AddSource(GlobalSettingsAttribute.FullName, SourceText.From(GlobalSettingsAttribute.Text, Encoding.UTF8));
+        => context.AddSource(ProjectSettingsAttribute.FullName, SourceText.From(ProjectSettingsAttribute.Text, Encoding.UTF8));
 
     private void RegisterSettingsAttribute(IncrementalGeneratorPostInitializationContext context)
         => context.AddSource(SettingsAttribute.FullName, SourceText.From(SettingsAttribute.Text, Encoding.UTF8));
@@ -93,7 +90,7 @@ public class Generator : IIncrementalGenerator
 
 
 
-    private static void RegisterMapper(SourceProductionContext context, ImplementedMapperType implementationInfo)
-        => context.AddSource(implementationInfo.FullName, SourceText.From(CodeBuilder.Build(implementationInfo), Encoding.UTF8));
+    private static void RegisterMapper(SourceProductionContext context, ImplementedMapperType implementation)
+        => context.AddSource(implementation.FullName, SourceText.From(CodeBuilder.Build(implementation), Encoding.UTF8));
 
 }

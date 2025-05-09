@@ -12,13 +12,18 @@ public record MapperType(
 public record PlannedMapperType(
     string Namespace,
     string Name,
-    EquatableArrayWrap<PlannedMethod> PlannedMethodList)
+    EquatableArrayWrap<MappingMethod> MappingMethodList,
+    EquatableArrayWrap<NamedValue> SettingOverrideList)
     : TypeId(Namespace, Name);
-
-
 
 public record ConfiguredMapperType(
     string Namespace,
     string Name,
     EquatableArrayWrap<ConfiguredMethod> ConfiguredMethodList)
+    : TypeId(Namespace, Name);
+
+public record ImplementedMapperType(
+    string Namespace,
+    string Name,
+    EquatableArrayWrap<MethodImplementation> MethodImplementationList)
     : TypeId(Namespace, Name);
