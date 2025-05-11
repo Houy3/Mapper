@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Mapper.Core.Entity;
+﻿using Mapper.Core.Entity;
 using Mapper.Core.Entity.Common;
 
 namespace Mapper.Core.Builder;

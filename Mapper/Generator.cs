@@ -10,10 +10,13 @@ using Mapper.Core.Reader;
 
 namespace Mapper;
 
+//find other functions
+//ignore
 //nullable
 //array
 //strange types: valueType enum
 //async
+//todo import settings not types
 
 //read about cancelToken
 
@@ -23,19 +26,9 @@ public class Generator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(RegisterAutoImplementationAttribute);
-        context.RegisterPostInitializationOutput(RegisterGlobalSettingsAttribute);
+        context.RegisterPostInitializationOutput(RegisterProjectSettingsAttribute);
         context.RegisterPostInitializationOutput(RegisterSettingsAttribute);
         context.RegisterPostInitializationOutput(RegisterImportTypeMappingsAttribute);
-
-        //достаем настройки на проект
-        var globalSettings = context.SyntaxProvider
-            .ForAttributeWithMetadataName(
-                fullyQualifiedMetadataName: ProjectSettingsAttribute.FullName,
-                predicate: (node, _) => node is ClassDeclarationSyntax,
-                transform: (ctx, _) => ctx.Attributes.ReadProjectSettings())
-            .Where(x => x is not null)
-            .Collect()
-            .Select((x, _) => x.FirstOrDefault());
 
         //импортируем сторонние маппинги
         var externalTypeMappingList = context.SyntaxProvider
@@ -46,14 +39,14 @@ public class Generator : IIncrementalGenerator
             .SelectMany((x, _) => x)
             .Collect();
 
-        //ищем мапперы для реализации
+        //ищем мапперы и их методы для реализации
         var mapperTypeList = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: AutoImplementationAttribute.FullName,
                 predicate: (node, _) => node is ClassDeclarationSyntax,
                 transform: (ctx, _) => ctx.TargetSymbol.ReadMapperType())
             .Where(x => x is not null)
-            .Select((x, ct) => x!.PlanMethodList(ct));
+            .Select((x, ct) => x!.Plan(ct));
 
         //ищем внутренние маппинги
         var internalTypeMappingList = mapperTypeList
@@ -64,13 +57,25 @@ public class Generator : IIncrementalGenerator
         var typeMappingStorage = externalTypeMappingList.Combine(internalTypeMappingList)
             .Select((x, ct) => x.Left.CombineInStorage(x.Right, ct));
 
-        //высчитываем настройки на каждой реализации и распределяем хранилище
-        var configuredMapperType = mapperTypeList
-            .Combine(globalSettings.Combine(typeMappingStorage))
-            .Select((x, ct) => SettingsHelper.SpreadOutSettings(x.Left, x.Right.Left, x.Right.Right, ct));
+        //достаем настройки на проект
+        var projectSettings = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                fullyQualifiedMetadataName: ProjectSettingsAttribute.FullName,
+                predicate: (node, _) => node is ClassDeclarationSyntax,
+                transform: (ctx, _) => ctx.Attributes.ReadProjectSettings())
+            .Where(x => x is not null)
+            .Collect()
+            .Combine(typeMappingStorage)
+            .Select((x, _) => x.Left.FirstOrDefault(x.Right));
+
+        //высчитываем настройки на каждой реализации
+        var configuredMapperTypeList = mapperTypeList
+            .Combine(projectSettings)
+            .Select((x, ct) => x.Left.Configure(x.Right, ct));
 
 
-        var implementationList = configuredMapperType.Select((x, ct) => x.ImplementType());
+        var implementationList = configuredMapperTypeList
+            .Select((x, ct) => x.Implement());
 
         context.RegisterSourceOutput(implementationList, RegisterMapper);
     }
@@ -79,7 +84,7 @@ public class Generator : IIncrementalGenerator
     private void RegisterAutoImplementationAttribute(IncrementalGeneratorPostInitializationContext context)
         => context.AddSource(AutoImplementationAttribute.FullName, SourceText.From(AutoImplementationAttribute.Text, Encoding.UTF8));
 
-    private void RegisterGlobalSettingsAttribute(IncrementalGeneratorPostInitializationContext context)
+    private void RegisterProjectSettingsAttribute(IncrementalGeneratorPostInitializationContext context)
         => context.AddSource(ProjectSettingsAttribute.FullName, SourceText.From(ProjectSettingsAttribute.Text, Encoding.UTF8));
 
     private void RegisterSettingsAttribute(IncrementalGeneratorPostInitializationContext context)

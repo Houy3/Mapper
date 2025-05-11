@@ -3,10 +3,10 @@ using Entity.User;
 
 namespace Service.User;
 
-partial interface IUserMapper : ISimpleMapper<UserDto, UserDb>
+partial interface IUserMapper : ISimpleMapper<UserDto, UserService>
 {
 
-    public UserDb ToDb(UserDto source, UserDb destination);
+    public UserService ToDb(UserDto source, UserService destination);
 }
 
 

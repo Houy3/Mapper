@@ -1,19 +1,21 @@
 ﻿using Entity.User;
-using Mapper.TempTests.User;
 
 namespace Service.User;
 
 [Mapper.AutoImplementation]
-[Mapper.Settings(MappingRule = Mapper.MappingRuleEnum.MapOnlyPairs)]
 public partial class UserMapper : BaseUserMapper, IUserMapper
 {
-    public partial UserDb ToDb(UserDto source);
+    //from interface
+    public partial UserService ToService(UserDto source);
+
+    //from partial
+    [Mapper.Settings(MappingRule = Mapper.MappingRuleEnum.MapOnlyPairs)]
+    public partial UserService ToService(UserCreateDto source);
+
+    [Mapper.Settings(MappingRule = Mapper.MappingRuleEnum.MapOnlyPairs)]
+    public static partial UserService ToService(UserCreateDto source, UserService destination);
 
 
-    public partial UserDb ToDb2(UserDto source);
-
-    public static partial UserDb ToDb2(UserDto source, UserDb destination);
-
-    public override partial UserDto ToDto(UserDb source);
-
+    //from base class
+    public override partial UserDto ToDto(UserService source);
 }

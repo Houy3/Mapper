@@ -3,31 +3,29 @@
 namespace Mapper.Core.Entity;
 
 public record FieldMapping(
-    Variable SourceVariable,
+    string SourceParameterName,
     Field? SourceField,
-    string? DestinationFieldName)
+    Field? DestinationField,
+    string? ErrorMessage = null)
 {
-    public string SourceFieldRef => SourceVariable.Name + "." + SourceField!.Name;
-
     public virtual void AppendSource(TextBuilder textBuilder)
     {
-        if (SourceField is null)
-            textBuilder.Append("Unknown /* No source found. */");
-        else
-            textBuilder.Append(SourceFieldRef);
+        textBuilder.Append(SourceParameterName, ".", SourceField?.Name);
+
+        if (ErrorMessage is not null)
+            textBuilder.Append("/* ", ErrorMessage, " */");
     }
 }
-public record SimpleFieldMapping(
-    Variable SourceVariable,
+
+public record FieldMappingByMethod(
+    string SourceParameterName,
     Field? SourceField,
-    string? DestinationFieldName)
-    : FieldMapping(SourceVariable, SourceField, DestinationFieldName)
+    Field? DestinationField,
+    TypeMappingMethodId Method)
+    : FieldMapping(SourceParameterName, SourceField, DestinationField)
 {
     public override void AppendSource(TextBuilder textBuilder)
     {
-        if (SourceField is null)
-            textBuilder.Append("Unknown /* No source found. */");
-        else
-            textBuilder.Append(SourceFieldRef);
+        textBuilder.Append(Method.Class.FullName, ".", Method.Name, "(", SourceParameterName, ".", SourceField?.Name, ")");
     }
 }

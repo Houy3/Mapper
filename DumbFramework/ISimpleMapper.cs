@@ -1,6 +1,6 @@
 ﻿namespace DumbFramework;
 
-public interface ISimpleMapper<TDto, TDb>
+public interface ISimpleMapper<TDto, TService>
 {
-    TDb ToDb(TDto source);
+    TService ToService(TDto source);
 }

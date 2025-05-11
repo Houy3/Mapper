@@ -9,6 +9,8 @@ public record DataType(
     : TypeId(Namespace, Name)
 {
 
+    public EquatableDictionaryWrap<string, Field> FieldDictionary = new(FieldList.ToDictionary(x => x.Name, x => x));
+
     public TypeId ToTypeId()
         => new(Namespace, Name);
 }
@@ -16,3 +18,7 @@ public record DataType(
 public record Field(
     string Name,
     FieldType Type);
+
+public record FieldPair(
+    Field SourceField,
+    Field DestinationField);

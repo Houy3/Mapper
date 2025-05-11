@@ -10,11 +10,9 @@ public abstract record MethodImplementation(
     MethodDetails Details)
     : BaseMethod(Signature, Details)
 {
-    private readonly Variable _sourceVariable = Signature.ParameterList[0];
-    public Variable SourceVariable => _sourceVariable;
+    public Variable SourceVariable = Signature.ParameterList[0];
 
-    private readonly Variable _destinationVariable = Signature.ParameterList.Length > 1 ? Signature.ParameterList[1] : new Variable("destination", Signature.ReturnType);
-    public Variable DestinationVariable => _destinationVariable;
+    public Variable DestinationVariable = Signature.ParameterList.Length > 1 ? Signature.ParameterList[1] : new Variable("destination", Signature.ReturnType);
 
     public void AppendDeclare(TextBuilder textBuilder)
     {
@@ -66,7 +64,7 @@ public record MethodImplementationByOtherMethod(
     }
 }
 
-public record MappingMethodImplementation(
+public record DataTypeMappingMethodImplementation(
     MethodSignature Signature,
     MethodDetails Details,
     EquatableArrayWrap<FieldMapping> MappingList)
@@ -95,7 +93,7 @@ public record MappingMethodImplementation(
         if (withDestinationVariable)
             textBuilder.Append(DestinationVariable.Name, ".");
 
-        textBuilder.Append(mapping.DestinationFieldName, " = ").Append(mapping.AppendSource);
+        textBuilder.Append(mapping.DestinationField?.Name, " = ").Append(mapping.AppendSource);
 
         if (withDestinationVariable)
             textBuilder.Append(";");

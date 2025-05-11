@@ -1,9 +1,9 @@
 ﻿using DumbFramework;
 using Entity.User;
 
-namespace Mapper.TempTests.User;
+namespace Service.User;
 
-public abstract class BaseUserMapper : SimpleBaseMapper<UserDto, UserDb>
+public abstract class BaseUserMapper : SimpleBaseMapper<UserDto, UserService>
 {
-    public abstract UserDto ToDto(UserDb source, UserDto destination);
+    public abstract UserDto ToDto(UserService source, UserDto destination);
 }

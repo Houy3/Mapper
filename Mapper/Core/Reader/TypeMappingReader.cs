@@ -28,7 +28,6 @@ public static class TypeMappingReader
         if (@object is not ITypeSymbol symbol)
             yield break;
 
-        var typeMappingMethodList = new List<TypeMappingMethod>();
         foreach (var methodSymbol in symbol.GetMembers().OfType<IMethodSymbol>())
         {
             if (!methodSymbol.IsStatic || methodSymbol.Parameters.Length != 1)

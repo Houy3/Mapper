@@ -22,7 +22,6 @@ public abstract record BaseMethod(
         => !Is(detail);
 }
 
-
 public record Method(
     MethodSignature Signature,
     MethodDetails Details,
@@ -41,7 +40,7 @@ public record MappingMethod(
     EquatableArrayWrap<NamedValue> SettingOverrideList)
     : BaseMethod(Signature, Details)
 {
-    public MappingMethod(MethodSignature signature, MethodDetails details, EquatableArrayWrap<NamedValue> settingOverrideList)
+    public MappingMethod(MethodSignature signature, MethodDetails details,  EquatableArrayWrap<NamedValue> settingOverrideList)
         : this(signature, details, null, settingOverrideList) { }
 }
 
