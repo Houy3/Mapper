@@ -5,12 +5,12 @@ using Microsoft.CodeAnalysis;
 namespace Mapper.Core.Entity;
 
 public record TypeMappingStorage(
-    EquatableDictionaryWrap<TypeIdPair, TypeMappingMethodId> TypeMappingList)
+    EquatableDictionaryWrap<TypeIdPair, TypeMappingMethodId> TypeMappingDictionary)
 {
     public TypeMappingStorage() : this(new EquatableDictionaryWrap<TypeIdPair, TypeMappingMethodId>()) { }
 
     public bool IsEmpty()
-        => TypeMappingList.Count == 0;
+        => TypeMappingDictionary.Count == 0;
 }
 
 public record TypeIdPair(

@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-
-namespace Entity.User;
+﻿namespace Entity.User;
 
 
 public class UserDto
@@ -13,7 +11,7 @@ public class UserDto
 
     public int Number { get; set; }
 
-    public JObject Info { get; set; } = default!;
+    public string Info { get; set; } = default!;
 }
 
 public class UserCreateDto
@@ -24,5 +22,5 @@ public class UserCreateDto
 
     public int Number { get; set; }
 
-    public JObject Info { get; set; } = default!;
+    public string Info { get; set; } = default!;
 }

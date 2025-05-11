@@ -10,9 +10,6 @@ public record DataType(
 {
 
     public EquatableDictionaryWrap<string, Field> FieldDictionary = new(FieldList.ToDictionary(x => x.Name, x => x));
-
-    public TypeId ToTypeId()
-        => new(Namespace, Name);
 }
 
 public record Field(

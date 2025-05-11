@@ -5,6 +5,9 @@ public record TypeId(
     string Name)
 {
     public string FullName => Namespace + "." + Name;
+
+    public TypeId ToId()
+        => new(Namespace, Name);
 }
 
 

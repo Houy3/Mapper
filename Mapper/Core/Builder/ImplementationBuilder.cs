@@ -67,7 +67,14 @@ public static class ImplementationBuilder
         if (destinationField is null)
             return new FieldMapping(sourceParameterName, sourceField, destinationField, "No destination found.");
 
-        if (settings.TypeMappingStorage.TypeMappingList.TryGetValue(new(sourceField.Type, destinationField.Type), out var typeMappingMethodId))
+        //var pair = new TypeIdPair(sourceField.Type, destinationField.Type);
+
+        //foreach (var key in settings.TypeMappingStorage.TypeMappingDictionary.Dictionary.Keys)
+        //{
+        //    var t = pair.Equals(key);
+        //}
+
+        if (settings.TypeMappingStorage.TypeMappingDictionary.TryGetValue(new(sourceField.Type.ToId(), destinationField.Type.ToId()), out var typeMappingMethodId))
             return new FieldMappingByMethod(sourceParameterName, sourceField, destinationField, typeMappingMethodId);
         
         return new FieldMapping(sourceParameterName, sourceField, destinationField);
