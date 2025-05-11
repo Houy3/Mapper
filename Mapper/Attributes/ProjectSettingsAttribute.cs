@@ -1,18 +1,13 @@
-﻿using Mapper.Common;
+﻿namespace Mapper.Attributes;
 
-namespace Mapper.Attributes;
-
-public static class ProjectSettingsAttribute
+public class ProjectSettingsAttribute : GeneratedAttribute
 {
-    public const string Namespace = Constants.Namespace;
-    public const string Name = nameof(ProjectSettingsAttribute);
+    public override string Name => nameof(ProjectSettingsAttribute);
 
-    public const string FullName = Namespace + "." + Name;
-
-    public const string Text = $$"""
+    public override string Text => $$"""
         namespace {{Namespace}};
 
         [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-        internal class {{Name}} : {{SettingsAttribute.Name}};
+        internal class {{Name}} : {{nameof(SettingsAttribute)}};
         """;
 }

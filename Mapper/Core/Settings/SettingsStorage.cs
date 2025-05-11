@@ -4,7 +4,12 @@ namespace Mapper.Core.Settings;
 
 public record SettingsStorage(
     TypeMappingStorage TypeMappingStorage,
-    MappingRule MappingRule = MappingRule.ByDestination);
+    MappingRule MappingRule,
+    string[] IgnoreFieldList)
+{
+    public static SettingsStorage Default()
+        => new(new(), MappingRule.ByDestination, []);
+}
 
 public enum MappingRule
 {

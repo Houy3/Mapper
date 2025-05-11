@@ -1,18 +1,13 @@
-﻿using Mapper.Common;
+﻿namespace Mapper.Attributes;
 
-namespace Mapper.Attributes;
-
-public static class AutoImplementationAttribute
+public class AutoImplementationAttribute : GeneratedAttribute
 {
-    public const string Namespace = Constants.Namespace;
-    public const string Name = nameof(AutoImplementationAttribute);
+    public override string Name => nameof(AutoImplementationAttribute);
 
-    public const string FullName = Namespace + "." + Name;
-
-    public const string Text = $$"""
+    public override string Text => $$"""
         namespace {{Namespace}};
 
         [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-        internal class {{Name}} : Attribute;
+        internal class {{Name}} : {{nameof(SettingsAttribute)}};
         """;
 }

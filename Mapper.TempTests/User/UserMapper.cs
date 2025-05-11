@@ -9,10 +9,12 @@ public partial class UserMapper : BaseUserMapper, IUserMapper
     public partial UserService ToService(UserDto source);
 
     //from partial
-    [Mapper.Settings(MappingRule = Mapper.MappingRuleEnum.MapOnlyPairs)]
+    [Mapper.MethodSettings(
+        IgnoreFieldList = [nameof(UserService.Id)])]
     public partial UserService ToService(UserCreateDto source);
 
-    [Mapper.Settings(MappingRule = Mapper.MappingRuleEnum.MapOnlyPairs)]
+    [Mapper.MethodSettings(
+        IgnoreFieldList = [nameof(UserService.Id)])]
     public static partial UserService ToService(UserCreateDto source, UserService destination);
 
 

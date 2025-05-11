@@ -3,13 +3,14 @@ using Mapper.Core.Entity.Common;
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using static Mapper.Attributes.SettingsAttribute;
+using static Mapper.Attributes.MethodSettingsAttribute;
 
 namespace Mapper.Core.Settings;
 
 public static class SettingsHelper
 {
     public static SettingsStorage ReadProjectSettings(this ImmutableArray<AttributeData> attributeList)
-        => From(new(new()), SettingOverrideReader.From(attributeList));
+        => From(SettingsStorage.Default(), SettingOverrideReader.From(attributeList));
 
     public static SettingsStorage From(SettingsStorage settings, EquatableArrayWrap<NamedValue> settingOverrideList)
     {
@@ -18,12 +19,15 @@ public static class SettingsHelper
 
         return new(
             settings.TypeMappingStorage,
-            Parse(settingOverrideList.FirstOrDefault(x => x.Name == MappingRulePropertyName)?.Value) ?? settings.MappingRule
+            FindAndParseMappingRule(settingOverrideList) ?? settings.MappingRule,
+            FindAndParseIgnoreFieldList(settingOverrideList) ?? []
             );
     }
 
-    public static MappingRule? Parse(object? value)
-        => (MappingRule?)(value as int?);
+    public static MappingRule? FindAndParseMappingRule(EquatableArrayWrap<NamedValue> settingOverrideList)
+        => (MappingRule?)(settingOverrideList.FirstOrDefault(x => x.Name == MappingRulePropertyName)?.Value as int?);
+    public static string[] FindAndParseIgnoreFieldList(EquatableArrayWrap<NamedValue> settingOverrideList)
+        => [.. (settingOverrideList.FirstOrDefault(x => x.Name == IgnoreFieldListPropertyName)?.Value as object[] ?? []).Select(x => x.ToString())];
 
     public static ConfiguredMapperType Configure(
         this PlannedMapperType mapperType, 
@@ -54,9 +58,9 @@ public static class SettingsHelper
         this ImmutableArray<SettingsStorage> settingsStorageList,
         TypeMappingStorage typeMappingStorage)
     { 
-        var projectSettings = settingsStorageList.Where(x => x is not null).FirstOrDefault() ?? new(new());
+        var projectSettings = settingsStorageList.Where(x => x is not null).FirstOrDefault() ?? SettingsStorage.Default();
 
-        return new(typeMappingStorage, projectSettings.MappingRule);
+        return new(typeMappingStorage, projectSettings.MappingRule, projectSettings.IgnoreFieldList);
     }
 
 }

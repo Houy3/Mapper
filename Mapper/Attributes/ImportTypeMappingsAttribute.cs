@@ -1,18 +1,13 @@
-﻿using Mapper.Common;
+﻿namespace Mapper.Attributes;
 
-namespace Mapper.Attributes;
-
-public static class ImportTypeMappingsAttribute
+public class ImportTypeMappingsAttribute : GeneratedAttribute
 {
-    public const string Namespace = Constants.Namespace;
-    public const string Name = nameof(ImportTypeMappingsAttribute);
+    public override string Name => nameof(ImportTypeMappingsAttribute);
 
-    public const string FullName = Namespace + "." + Name;
-
-    public const string Text = $$"""
+    public override string Text => $$"""
         namespace {{Namespace}};
 
-        [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+        [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
         internal class {{Name}} : Attribute
         {
             public Type[] {{ImportPropertyName}} = [];

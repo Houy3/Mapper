@@ -1,6 +1,5 @@
 ﻿using Mapper.Core.Entity;
 using Mapper.Core.Entity.Common;
-using Mapper.Core.Reader;
 using Mapper.Core.Settings;
 
 namespace Mapper.Core.Builder;
@@ -43,6 +42,8 @@ public static class ImplementationBuilder
             _ => []
         };
 
+        fieldNameList = fieldNameList.Where(x => !settings.IgnoreFieldList.Contains(x));
+
         var fieldMappingList = fieldNameList.Select(fieldName => MapField(
                 sourceParameterName,
                 sourceType.FieldDictionary.GetValueOrDefault(fieldName),
@@ -66,13 +67,6 @@ public static class ImplementationBuilder
         
         if (destinationField is null)
             return new FieldMapping(sourceParameterName, sourceField, destinationField, "No destination found.");
-
-        //var pair = new TypeIdPair(sourceField.Type, destinationField.Type);
-
-        //foreach (var key in settings.TypeMappingStorage.TypeMappingDictionary.Dictionary.Keys)
-        //{
-        //    var t = pair.Equals(key);
-        //}
 
         if (settings.TypeMappingStorage.TypeMappingDictionary.TryGetValue(new(sourceField.Type.ToId(), destinationField.Type.ToId()), out var typeMappingMethodId))
             return new FieldMappingByMethod(sourceParameterName, sourceField, destinationField, typeMappingMethodId);

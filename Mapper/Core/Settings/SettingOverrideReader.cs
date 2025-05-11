@@ -23,10 +23,16 @@ public static class SettingOverrideReader
             if (attributeType is null)
                 continue;
 
-            var attributeTypeName = TypeIdReader.GetName(attributeType);
-            if (TypeIdReader.GetNamespace(attributeType) == SettingsAttribute.Namespace 
-                && (attributeTypeName == SettingsAttribute.Name || attributeTypeName == ProjectSettingsAttribute.Name) )
-                return attribute;
+            if (TypeIdReader.GetNamespace(attributeType) != SettingsAttribute.Namespace)
+                continue;
+
+            while (attributeType is not null)
+            {
+                if (attributeType.Name == nameof(SettingsAttribute))
+                    return attribute;
+
+                attributeType = attributeType.BaseType;
+            }
         }
         return null;
     }

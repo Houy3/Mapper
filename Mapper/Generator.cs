@@ -25,15 +25,12 @@ public class Generator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(RegisterAutoImplementationAttribute);
-        context.RegisterPostInitializationOutput(RegisterProjectSettingsAttribute);
-        context.RegisterPostInitializationOutput(RegisterSettingsAttribute);
-        context.RegisterPostInitializationOutput(RegisterImportTypeMappingsAttribute);
+        context.RegisterPostInitializationOutput(RegisterAttributes);
 
         //импортируем сторонние маппинги
         var externalTypeMappingList = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                fullyQualifiedMetadataName: ImportTypeMappingsAttribute.FullName,
+                fullyQualifiedMetadataName: new ImportTypeMappingsAttribute().FullName,
                 predicate: (node, _) => node is ClassDeclarationSyntax,
                 transform: (ctx, _) => ctx.Attributes.ReadExternalTypeMappingList())
             .SelectMany((x, _) => x)
@@ -42,7 +39,7 @@ public class Generator : IIncrementalGenerator
         //ищем мапперы и их методы для реализации
         var mapperTypeList = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                fullyQualifiedMetadataName: AutoImplementationAttribute.FullName,
+                fullyQualifiedMetadataName: new AutoImplementationAttribute().FullName,
                 predicate: (node, _) => node is ClassDeclarationSyntax,
                 transform: (ctx, _) => ctx.TargetSymbol.ReadMapperType())
             .Where(x => x is not null)
@@ -60,7 +57,7 @@ public class Generator : IIncrementalGenerator
         //достаем настройки на проект
         var projectSettings = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                fullyQualifiedMetadataName: ProjectSettingsAttribute.FullName,
+                fullyQualifiedMetadataName: new ProjectSettingsAttribute().FullName,
                 predicate: (node, _) => node is ClassDeclarationSyntax,
                 transform: (ctx, _) => ctx.Attributes.ReadProjectSettings())
             .Where(x => x is not null)
@@ -80,20 +77,19 @@ public class Generator : IIncrementalGenerator
         context.RegisterSourceOutput(implementationList, RegisterMapper);
     }
 
+    public readonly GeneratedAttribute[] GeneratedAttributeList = [
+        new SettingsAttribute(),
+        new ProjectSettingsAttribute(),
+        new AutoImplementationAttribute(),
+        new MethodSettingsAttribute(),
+        new ImportTypeMappingsAttribute(),
+        ];
 
-    private void RegisterAutoImplementationAttribute(IncrementalGeneratorPostInitializationContext context)
-        => context.AddSource(AutoImplementationAttribute.FullName, SourceText.From(AutoImplementationAttribute.Text, Encoding.UTF8));
-
-    private void RegisterProjectSettingsAttribute(IncrementalGeneratorPostInitializationContext context)
-        => context.AddSource(ProjectSettingsAttribute.FullName, SourceText.From(ProjectSettingsAttribute.Text, Encoding.UTF8));
-
-    private void RegisterSettingsAttribute(IncrementalGeneratorPostInitializationContext context)
-        => context.AddSource(SettingsAttribute.FullName, SourceText.From(SettingsAttribute.Text, Encoding.UTF8));
-
-    private void RegisterImportTypeMappingsAttribute(IncrementalGeneratorPostInitializationContext context)
-        => context.AddSource(ImportTypeMappingsAttribute.FullName, SourceText.From(ImportTypeMappingsAttribute.Text, Encoding.UTF8));
-
-
+    private void RegisterAttributes(IncrementalGeneratorPostInitializationContext context)
+    {
+        foreach (var attribute in GeneratedAttributeList)
+            context.AddSource(attribute.FullName, SourceText.From(attribute.Text, Encoding.UTF8));
+    }
 
     private static void RegisterMapper(SourceProductionContext context, ImplementedMapperType implementation)
         => context.AddSource(implementation.FullName, SourceText.From(CodeBuilder.Build(implementation), Encoding.UTF8));
