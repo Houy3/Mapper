@@ -12,6 +12,8 @@ public static class TypeIdReader
         => symbol.ContainingNamespace.ToDisplayString();
 
     public static string GetName(ITypeSymbol symbol)
-        => symbol.ToDisplayString(NullableFlowState.NotNull, new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly));
+        => symbol.ToDisplayString(NullableFlowState.NotNull, 
+            new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly, 
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
 
 }

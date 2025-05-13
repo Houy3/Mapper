@@ -6,10 +6,18 @@ namespace Service.User;
 public partial class UserMapper //: BaseUserMapper, IUserMapper
 {
 
-    public static partial UserService ToServiceWithoutBuilder(UserDto source);
-    public static partial UserService ToService(UserDto source);
+    //public static partial UserService ToServiceWithoutBuilder(UserDto source);
 
-    public static partial UserService ToService(UserDto source, UserService destination);
+    //public static partial UserService ToService(UserDto source);
+
+    //public static partial UserService ToService(UserDto source, UserService destination);
+
+
+    //public static partial UserService ToService(UserDto source);
+
+    public static partial IEnumerable<UserService> ToServiceList1(IEnumerable<UserDto> source);
+    public static partial IEnumerable<UserService> ToServiceList2(List<UserDto> source);
+    public static partial IEnumerable<UserService> ToServiceList3(UserDto[] source);
 
 
     public static UserService ToServiceBuilder(UserDto source)
