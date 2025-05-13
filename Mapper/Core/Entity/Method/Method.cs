@@ -36,18 +36,26 @@ public record Method(
 public record MappingMethod(
     MethodSignature Signature,
     MethodDetails Details,
-    MappingMethod? ConnectedMethod,
+    MethodSignature? StaticMethod,
+    MethodSignature? BuilderMethod,
+    MethodSignature? AfterMappingMethod,
     EquatableArrayWrap<NamedValue> SettingOverrideList)
     : BaseMethod(Signature, Details)
 {
-    public MappingMethod(MethodSignature signature, MethodDetails details,  EquatableArrayWrap<NamedValue> settingOverrideList)
-        : this(signature, details, null, settingOverrideList) { }
+    public MappingMethod(MethodSignature signature, MethodDetails details, EquatableArrayWrap<NamedValue> settingOverrideList)
+        : this(signature, details, null, null, null, settingOverrideList) { }
+    public MappingMethod(MethodSignature signature, MethodDetails details, MethodSignature? staticMethod, EquatableArrayWrap<NamedValue> settingOverrideList)
+        : this(signature, details, staticMethod, null, null, settingOverrideList) { }
+    public MappingMethod(MethodSignature signature, MethodDetails details, MethodSignature? builderMethod, MethodSignature? afterMappingMethod, EquatableArrayWrap<NamedValue> settingOverrideList)
+        : this(signature, details, null, builderMethod, afterMappingMethod,  settingOverrideList) { }
 }
 
 public record ConfiguredMethod(
     MethodSignature Signature,
     MethodDetails Details,
-    MappingMethod? ConnectedMethod,
+    MethodSignature? StaticMethod,
+    MethodSignature? BuilderMethod,
+    MethodSignature? AfterMappingMethod,
     SettingsStorage SettingsStorage)
     : BaseMethod(Signature, Details);
 

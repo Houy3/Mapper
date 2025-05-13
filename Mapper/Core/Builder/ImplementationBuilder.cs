@@ -17,16 +17,16 @@ public static class ImplementationBuilder
 
     public static MethodImplementation ImplementMethod(ConfiguredMethod method)
     {
-        if (method.ConnectedMethod is not null)
+        if (method.StaticMethod is not null)
             return ImplementByOtherMethod(method);
         return ImplementMappingMethod(method);
     }
 
     public static MethodImplementationByOtherMethod ImplementByOtherMethod(ConfiguredMethod method)
-        => new(method.Signature, method.Details, method.ConnectedMethod!.Signature);
+        => new(method.Signature, method.Details, method.StaticMethod!);
 
     public static DataTypeMappingMethodImplementation ImplementMappingMethod(ConfiguredMethod method)
-        => new(method.Signature, method.Details, MapFieldList(method.ParameterList[0].Name, method.SourceType, method.DestinationType, method.SettingsStorage));
+        => new(method.Signature, method.Details, method.BuilderMethod, method.AfterMappingMethod, MapFieldList(method.ParameterList[0].Name, method.SourceType, method.DestinationType, method.SettingsStorage));
 
     public static EquatableArrayWrap<FieldMapping> MapFieldList(
         string sourceParameterName,

@@ -67,27 +67,68 @@ public record MethodImplementationByOtherMethod(
 public record DataTypeMappingMethodImplementation(
     MethodSignature Signature,
     MethodDetails Details,
+    MethodSignature? BuilderMethod,
+    MethodSignature? AfterMappingMethod,
     EquatableArrayWrap<FieldMapping> MappingList)
     : MethodImplementation(Signature, Details)
 {
     public override void AppendBody(TextBuilder textBuilder)
     {
-        if (ParameterList.Length == 2)
-            AppendBodyForTwoParameterMethod(textBuilder);
-        else
-            AppendBodyForOneParameterMethod(textBuilder);
+        if (ParameterList.Length == 1)
+        {
+            if (BuilderMethod is null) {
+                AppendBodyForOneParameterMethod(textBuilder);
+                return;
+            }
+            AppendBuilderMethod(textBuilder);
+        }
+        AppendBodyForTwoParameterMethod(textBuilder);
     }
 
     private void AppendBodyForOneParameterMethod(TextBuilder textBuilder)
-        => textBuilder
-            .AppendLine("return new()")
-            .AppendBlock(tb => tb.AppendLineJoin((tb, x) => AppendFieldMapping(tb, x), MappingList, ","), "{", "};");
+    {
+        textBuilder
+            .Append("return ");
+
+        if (AfterMappingMethod is not null)
+        {
+            textBuilder.Append(AfterMappingMethod.Name, "(");
+            if (AfterMappingMethod.ParameterList.Length == 2)
+                textBuilder.Append(SourceVariable.Name, ", ");
+        }
+
+        textBuilder
+            .AppendLine("new()")
+            .AppendBlock(tb => tb.AppendLineJoin((tb, x) => AppendFieldMapping(tb, x), MappingList, ","));
+
+
+        if (AfterMappingMethod is not null)
+            textBuilder.Append(")");
+        
+        textBuilder.Append(";");
+    }
     
     private void AppendBodyForTwoParameterMethod(TextBuilder textBuilder)
-        => textBuilder
+    {
+        textBuilder
             .AppendLine((tb, x) => AppendFieldMapping(tb, x, true), MappingList)
-            .Append("return ", DestinationVariable.Name, ";");
-    
+            .Append("return ");
+
+        if (AfterMappingMethod is not null)
+        {
+            textBuilder.Append(AfterMappingMethod.Name, "(");
+            if (AfterMappingMethod.ParameterList.Length == 2)
+                textBuilder.Append(SourceVariable.Name, ", ");
+        }
+
+        textBuilder.Append(DestinationVariable.Name);
+
+        if (AfterMappingMethod is not null)
+            textBuilder.Append(")");
+
+        textBuilder.Append(";");
+
+    }
     private void AppendFieldMapping(TextBuilder textBuilder, FieldMapping mapping, bool withDestinationVariable = false)
     {
         if (withDestinationVariable)
@@ -99,4 +140,12 @@ public record DataTypeMappingMethodImplementation(
             textBuilder.Append(";");
     }
 
+
+    private void AppendBuilderMethod(TextBuilder textBuilder)
+    {
+        textBuilder.Append("var ", DestinationVariable.Name, " = ", BuilderMethod!.Name, "(");
+        if (BuilderMethod.ParameterList.Length == 1)
+            textBuilder.Append(SourceVariable.Name);
+        textBuilder.AppendLine(");");
+    }
 }

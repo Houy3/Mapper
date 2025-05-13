@@ -42,7 +42,9 @@ public static class SettingsHelper
             new ConfiguredMethod(
                 x.Signature,
                 x.Details,
-                x.ConnectedMethod,
+                x.StaticMethod,
+                x.BuilderMethod,
+                x.AfterMappingMethod,
                 From(interfaceSettings, x.SettingOverrideList)
                 )).ToArray();
 

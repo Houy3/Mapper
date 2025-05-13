@@ -11,14 +11,11 @@ using Mapper.Core.Reader;
 namespace Mapper;
 
 //find other functions
-//ignore
 //nullable
 //array
 //strange types: valueType enum
 //async
 //todo import settings not types
-
-//read about cancelToken
 
 [Generator]
 public class Generator : IIncrementalGenerator
