@@ -27,14 +27,6 @@ public class Generator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(RegisterAttributes);
 
-        //импортируем сторонние маппинги
-        var externalTypeMappingList = context.SyntaxProvider
-            .ForAttributeWithMetadataName(
-                fullyQualifiedMetadataName: new ImportTypeMappingsAttribute().FullName,
-                predicate: (node, _) => node is ClassDeclarationSyntax,
-                transform: (ctx, _) => ctx.Attributes.ReadExternalTypeMappingList())
-            .SelectMany((x, _) => x)
-            .Collect();
 
         //ищем мапперы и их методы для реализации
         var mapperTypeList = context.SyntaxProvider
@@ -48,6 +40,15 @@ public class Generator : IIncrementalGenerator
         //ищем внутренние маппинги
         var internalTypeMappingList = mapperTypeList
             .SelectMany((x, _) => x.FindTypeMappingMethodList())
+            .Collect();
+
+        //импортируем сторонние маппинги
+        var externalTypeMappingList = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                fullyQualifiedMetadataName: new ImportTypeMappingsAttribute().FullName,
+                predicate: (node, _) => node is ClassDeclarationSyntax,
+                transform: (ctx, _) => ctx.Attributes.ReadExternalTypeMappingList())
+            .SelectMany((x, _) => x)
             .Collect();
 
         //объединяем маппинги в общее хранилище
@@ -70,7 +71,7 @@ public class Generator : IIncrementalGenerator
             .Combine(projectSettings)
             .Select((x, ct) => x.Left.Configure(x.Right, ct));
 
-
+        //реализуем методы маппингов
         var implementationList = configuredMapperTypeList
             .Select((x, ct) => x.Implement());
 

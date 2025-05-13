@@ -1,4 +1,4 @@
-﻿namespace Mapper.TempTests.Role;
+﻿namespace Entity.Role;
 
 public class RoleDto
 {

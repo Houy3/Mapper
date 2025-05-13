@@ -1,4 +1,6 @@
-﻿namespace Entity.User;
+﻿using Entity.Role;
+
+namespace Entity.User;
 
 
 public class UserDto
@@ -12,6 +14,8 @@ public class UserDto
     public int Number { get; set; }
 
     public string Info { get; set; } = default!;
+
+    public RoleDto Role { get; set; } = default!;
 }
 
 public class UserCreateDto

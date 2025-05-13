@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Entity.Role;
+using Newtonsoft.Json.Linq;
 
 namespace Service.User;
 
@@ -13,4 +14,6 @@ public class UserService
     public int Number { get; set; }
 
     public JObject Info { get; set; } = default!;
+
+    public RoleService Role { get; set; } = default!;
 }

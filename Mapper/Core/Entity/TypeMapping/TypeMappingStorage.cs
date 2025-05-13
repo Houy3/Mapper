@@ -21,7 +21,7 @@ public record TypeIdPair(
         : this(TypeIdReader.From(symbol.Parameters[0].Type), TypeIdReader.From(symbol.ReturnType)) { }
 
     public TypeIdPair(MappingMethod method)
-        : this(method.ParameterList[0].Type, method.ReturnType) { }
+        : this(method.ParameterList[0].Type.ToId(), method.ReturnType.ToId()) { }
 }
 
 public record TypeMappingMethodId(

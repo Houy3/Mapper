@@ -7,6 +7,4 @@ namespace Mapper.TempTests;
 /// </summary>
 [ProjectSettings(MappingRule = MappingRuleEnum.MapByDestination)]
 [ImportTypeMappings(Import = [typeof(JObjectMapper)])]
-internal class MapperProjectSettings
-{
-}
+internal class MapperProjectSettings;

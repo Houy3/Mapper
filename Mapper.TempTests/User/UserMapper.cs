@@ -10,11 +10,11 @@ public partial class UserMapper : BaseUserMapper, IUserMapper
 
     //from partial
     [Mapper.MethodSettings(
-        IgnoreFieldList = [nameof(UserService.Id)])]
-    public partial UserService ToService(UserCreateDto source);
+        IgnoreFieldList = [nameof(UserService.Id), nameof(UserService.Role)])]
+    public partial UserService ToServiceModified(UserCreateDto source);
 
     [Mapper.MethodSettings(
-        IgnoreFieldList = [nameof(UserService.Id)])]
+        IgnoreFieldList = [nameof(UserService.Id), nameof(UserService.Role)])]
     public static partial UserService ToService(UserCreateDto source, UserService destination);
 
 
