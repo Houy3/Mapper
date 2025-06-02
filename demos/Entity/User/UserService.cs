@@ -1,7 +1,7 @@
 ﻿using Entity.Role;
 using Newtonsoft.Json.Linq;
 
-namespace Service.User;
+namespace Entity.User;
 
 public class UserService
 {

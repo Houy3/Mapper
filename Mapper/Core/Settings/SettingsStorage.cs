@@ -5,10 +5,11 @@ namespace Mapper.Core.Settings;
 public record SettingsStorage(
     TypeMappingStorage TypeMappingStorage,
     MappingRule MappingRule,
+    bool NullableStructAutoResolving,
     string[] IgnoreFieldList)
 {
     public static SettingsStorage Default()
-        => new(new(), MappingRule.ByDestination, []);
+        => new(new(), MappingRule.ByDestination, true, []);
 }
 
 public enum MappingRule

@@ -11,7 +11,9 @@ public class SettingsAttribute : GeneratedAttribute
 
         internal abstract class {{Name}} : Attribute
         {
-            public MappingRuleEnum {{MappingRulePropertyName}} = MappingRuleEnum.UseDefaultValue;
+            public MappingRuleEnum {{MappingRulePropertyName}} = MappingRuleEnum.MapByDestination;
+
+            public bool {{NullableStructAutoResolvingPropertyName}} = true;
         }
 
         public enum MappingRuleEnum
@@ -28,4 +30,5 @@ public class SettingsAttribute : GeneratedAttribute
 
 
     public const string MappingRulePropertyName = nameof(SettingsStorage.MappingRule);
+    public const string NullableStructAutoResolvingPropertyName = nameof(SettingsStorage.NullableStructAutoResolving);
 }

@@ -3,5 +3,6 @@
 //todo
 public record FieldType(
     string Namespace,
-    string Name)
+    string Name,
+    bool IsNullable)
     : TypeId(Namespace, Name);

@@ -24,7 +24,6 @@ public class Generator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(RegisterAttributes);
 
-
         //ищем мапперы и их методы для реализации
         var mapperTypeList = context.SyntaxProvider
             .ForAttributeWithMetadataName(

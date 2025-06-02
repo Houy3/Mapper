@@ -1,11 +1,7 @@
-﻿using Entity.Role;
+﻿namespace Entity.User;
 
-namespace Entity.User;
-
-public class UserDto
+public class UserCreateDto
 {
-    public Guid Id { get; set; }
-
     public string Login { get; set; } = default!;
 
     public DateOnly BirthdayDate { get; set; }
@@ -13,6 +9,4 @@ public class UserDto
     public int Number { get; set; }
 
     public string Info { get; set; } = default!;
-
-    public RoleDto Role { get; set; } = default!;
 }

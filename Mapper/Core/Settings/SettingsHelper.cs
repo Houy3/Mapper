@@ -20,14 +20,19 @@ public static class SettingsHelper
         return new(
             settings.TypeMappingStorage,
             FindAndParseMappingRule(settingOverrideList) ?? settings.MappingRule,
-            FindAndParseIgnoreFieldList(settingOverrideList) ?? []
+            FindAndParseNullableStructAutoResolving(settingOverrideList) ?? settings.NullableStructAutoResolving,
+            FindAndParseIgnoreFieldList(settingOverrideList)
             );
     }
 
     public static MappingRule? FindAndParseMappingRule(EquatableArrayWrap<NamedValue> settingOverrideList)
         => (MappingRule?)(settingOverrideList.FirstOrDefault(x => x.Name == MappingRulePropertyName)?.Value as int?);
+    public static bool? FindAndParseNullableStructAutoResolving(EquatableArrayWrap<NamedValue> settingOverrideList)
+        => settingOverrideList.FirstOrDefault(x => x.Name == NullableStructAutoResolvingPropertyName)?.Value as bool?;
     public static string[] FindAndParseIgnoreFieldList(EquatableArrayWrap<NamedValue> settingOverrideList)
         => [.. (settingOverrideList.FirstOrDefault(x => x.Name == IgnoreFieldListPropertyName)?.Value as object[] ?? []).Select(x => x.ToString())];
+
+
 
     public static ConfiguredMapperType Configure(
         this PlannedMapperType mapperType, 
@@ -62,7 +67,7 @@ public static class SettingsHelper
     { 
         var projectSettings = settingsStorageList.Where(x => x is not null).FirstOrDefault() ?? SettingsStorage.Default();
 
-        return new(typeMappingStorage, projectSettings.MappingRule, projectSettings.IgnoreFieldList);
+        return new(typeMappingStorage, projectSettings.MappingRule, projectSettings.NullableStructAutoResolving, projectSettings.IgnoreFieldList);
     }
 
 }

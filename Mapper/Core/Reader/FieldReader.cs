@@ -28,7 +28,7 @@ public static class FieldReader
         if (symbol is IPropertySymbol propertySymbol)
         {
             if (propertySymbol.GetMethod is null || propertySymbol.SetMethod is null 
-                || !propertySymbol.GetMethod.IsPublic() || !propertySymbol.SetMethod.IsPublic())
+                || propertySymbol.IsReadOnly || propertySymbol.IsWriteOnly)
                 return null;
 
             return new(symbol.Name, TypeFrom(propertySymbol.Type));
@@ -47,7 +47,7 @@ public static class FieldReader
         
 
     public static FieldType TypeFrom(ITypeSymbol symbol)
-        => new(TypeIdReader.GetNamespace(symbol), TypeIdReader.GetName(symbol));
+        => new(TypeIdReader.GetNamespace(symbol), TypeIdReader.GetName(symbol), true);
 }
 
 

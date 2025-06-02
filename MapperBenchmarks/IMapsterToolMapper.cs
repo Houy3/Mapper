@@ -10,4 +10,3 @@ public interface IMapsterToolMapper
 
 }
 
-public class 

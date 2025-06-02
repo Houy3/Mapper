@@ -7,9 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Mapper\Mapper.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\DumbFramework\DumbFramework.csproj" />
         <ProjectReference Include="..\Entity\Entity.csproj" />
+        <ProjectReference Include="..\..\Mapper\Mapper.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>
