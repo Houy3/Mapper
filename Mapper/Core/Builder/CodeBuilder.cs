@@ -10,7 +10,7 @@ public static class CodeBuilder
         var t = new TextBuilder()
             .AppendLine("namespace ", type.Namespace, ";")
             .AppendLine()
-            .AppendLine("public partial class ", type.Name)
+            .AppendLine("partial class ", type.Name)
             .AppendBlock(tb => AppendMethodList(tb, type.MethodImplementationList))
             .ToString();
 
